@@ -1,0 +1,22 @@
+# Secrets and local state never enter the build context.
+.dev.vars
+.dev.vars.*
+.env
+.env.*
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+.data/
+
+.git/
+**/node_modules/
+dist/
+coverage/
+.wrangler/
+**/.wrangler/
+.wrangler-config/
+.logs/
+.agents/
+.idea/
+.vscode/
+*.log

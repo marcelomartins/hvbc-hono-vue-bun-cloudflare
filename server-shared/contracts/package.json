@@ -1,0 +1,24 @@
+{
+  "name": "@hvbc/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./routes": "./src/router/routes.ts",
+    "./api": "./src/types/api.ts",
+    "./uuid": "./src/primitives/uuid.ts",
+    "./auth": "./src/schemas/auth.ts",
+    "./security-headers": "./src/http/security-headers.ts",
+    "./static-assets": "./src/http/static-assets.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.3",
+    "typescript": "^6.0.3"
+  }
+}

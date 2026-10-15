@@ -1,0 +1,23 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignoreDependencies": ["cloudflare"],
+  "workspaces": {
+    ".": {
+      "entry": [],
+      "project": []
+    },
+    "web-vue": {
+      "entry": ["src/**/*.test.ts", "scripts/*.test.ts"],
+      "project": ["src/**/*.{ts,vue}", "scripts/*.ts"]
+    },
+    "server": {
+      "entry": ["src/cloudflare.ts", "src/bun.ts", "src/**/*.test.ts", "test/**/*.ts", "scripts/*.ts"],
+      "project": ["src/**/*.ts", "test/**/*.ts", "scripts/*.ts"]
+    },
+    "server-shared/contracts": {
+      "entry": ["src/**/*.test.ts"],
+      "project": ["src/**/*.ts"]
+    }
+  },
+  "vitest": false
+}
