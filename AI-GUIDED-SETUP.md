@@ -45,7 +45,7 @@ bun run init --name <name> --title "<Title>" --host <host> --dry-run
 
 Show them the summary, then run the same command without `--dry-run`.
 
-This rewrites the package names, the Worker name, the D1 database name, the session cookie, the package scope, and the product name in code, and creates `.dev.vars` with a freshly generated `SESSION_SECRET`. It does **not** rewrite Markdown files; step 5 covers those.
+This rewrites the package names, the Worker name, the D1 database name, the session cookie, the package scope, and the product name in code. It does **not** rewrite Markdown files; step 5 covers those.
 
 ## 3. Cloudflare (skip when they have no account)
 

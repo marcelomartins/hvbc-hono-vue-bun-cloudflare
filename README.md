@@ -122,7 +122,7 @@ Clone the repository and rename every identifier with the bootstrap script:
 bun run init --name minha-app --title "Minha App" --host app.minhaapp.com
 ```
 
-It rewrites the package names, the Worker name, the D1 database name, the session cookie, the shared package scope, and the visible product name; creates `.dev.vars` with a freshly generated `SESSION_SECRET`; and prints the remaining manual steps. Preview everything first with `--dry-run`, and add `--create-d1` to also run `wrangler d1 create` and write the returned `database_id` into `wrangler.jsonc`.
+It rewrites the package names, the Worker name, the D1 database name, the session cookie, the shared package scope, and the visible product name, and prints the remaining manual steps. Preview everything first with `--dry-run`, and add `--create-d1` to also run `wrangler d1 create` and write the returned `database_id` into `wrangler.jsonc`.
 
 | Flag | Purpose |
 | --- | --- |
@@ -149,25 +149,13 @@ Then run `bun run verify`.
 bun install
 ```
 
-2. Create your local environment file if the bootstrap script did not.
-
-```bash
-cp .dev.vars.example .dev.vars
-```
-
-Generate a value for `SESSION_SECRET` (at least 32 bytes):
-
-```bash
-bun --print "require('node:crypto').randomBytes(32).toString('base64url')"
-```
-
-3. Start the integrated local development server. This applies local D1 migrations and starts Vue with HMR together with the Worker running in `workerd` on the same origin.
+2. Start the integrated local development server. When `.dev.vars` is missing, this creates it from `.dev.vars.example` with a `SESSION_SECRET` generated on your machine; an existing file is never changed. It then applies local D1 migrations and starts Vue with HMR together with the Worker running in `workerd` on the same origin.
 
 ```bash
 bun run dev
 ```
 
-4. Open the local Vite URL and register the first user at `/register`.
+3. Open the local Vite URL and register the first user at `/register`.
 
 ## Features
 
@@ -250,6 +238,8 @@ On Cloudflare there is also a no-code alternative: a WAF rate limiting rule on t
 - `bun run start`: runs the built application on Bun with `.dev.vars` and a local SQLite file in `.data/`, as it runs self-hosted. Run `bun run build:web` first.
 - `bun run verify`: the full pipeline. Run it before sharing changes.
 
+`dev`, `dev:api`, and `start` create `.dev.vars` from `.dev.vars.example` when it is missing, with a `SESSION_SECRET` generated on your machine. An existing `.dev.vars` is never changed.
+
 The integrated dev server uses one origin, keeps local binding state in the root `.wrangler/state`, and honors the same `run_worker_first` protected-route gate used in production. Public pages render client-side during development because their SSG files only exist after a production build; the dev-only assets fallback accounts for that difference.
 
 ## Troubleshooting
@@ -258,7 +248,7 @@ The integrated dev server uses one origin, keeps local binding state in the root
 
 | Message | Fix |
 | --- | --- |
-| `SESSION_SECRET must contain at least 32 UTF-8 bytes` | `.dev.vars` is missing or `SESSION_SECRET` is empty. Create it as in [Running it](#running-it) |
+| `SESSION_SECRET must contain at least 32 UTF-8 bytes` | `SESSION_SECRET` in `.dev.vars` is empty or too short. Delete `.dev.vars` and run `bun run dev` to recreate it |
 | `ENVIRONMENT must be one of: local, production` | Set `ENVIRONMENT=local` in `.dev.vars` |
 | `APP_ORIGIN and APP_HOST must identify the same origin`, or an invalid URL error | `APP_ORIGIN` must be an origin with no path or trailing slash (`http://localhost`), and its hostname must equal `APP_HOST` |
 | `EMAIL_DRIVER=console prints message bodies and is only allowed when ENVIRONMENT=local` | Use `none` or `ses` outside local |

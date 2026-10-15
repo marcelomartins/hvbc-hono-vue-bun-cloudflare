@@ -1,6 +1,6 @@
 /**
- * Turns this framework into a new project: renames every identifier, generates the
- * local session secret and optionally provisions the D1 database.
+ * Turns this framework into a new project: renames every identifier and optionally
+ * provisions the D1 database.
  *
  *   bun run init --name minha-app --title "Minha App" --host app.minhaapp.com
  */
@@ -125,15 +125,6 @@ async function rename(options: Options): Promise<string[]> {
   return changed.sort();
 }
 
-async function writeDevVars(dryRun: boolean): Promise<boolean> {
-  const path = resolve(ROOT, ".dev.vars");
-  if (await Bun.file(path).exists()) return false;
-  const secret = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString("base64url");
-  const example = await Bun.file(resolve(ROOT, ".dev.vars.example")).text();
-  if (!dryRun) await Bun.write(path, example.replace("SESSION_SECRET=", `SESSION_SECRET=${secret}`));
-  return true;
-}
-
 function createDatabase(name: string): string | null {
   const result = spawnSync("bunx", ["wrangler", "d1", "create", name], {
     cwd: ROOT,
@@ -162,13 +153,6 @@ console.log(
 const changed = await rename(options);
 for (const path of changed) console.log(`  updated ${path}`);
 console.log(`${changed.length} files ${options.dryRun ? "would change" : "changed"}.`);
-
-const createdDevVars = await writeDevVars(options.dryRun);
-console.log(
-  createdDevVars
-    ? `  ${options.dryRun ? "would create" : "created"} .dev.vars with a fresh SESSION_SECRET`
-    : "  .dev.vars already exists and was kept"
-);
 
 if (options.createDatabase && !options.dryRun) {
   const databaseId = createDatabase(options.name);

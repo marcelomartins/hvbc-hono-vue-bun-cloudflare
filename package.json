@@ -10,10 +10,10 @@
   ],
   "scripts": {
     "init": "bun scripts/init.ts",
-    "dev": "bun run db:migrate:local && bun run --cwd web-vue dev:cloudflare",
+    "dev": "bun server/scripts/ensure-dev-vars.ts && bun run db:migrate:local && bun run --cwd web-vue dev:cloudflare",
     "dev:web": "bun run --cwd web-vue dev",
-    "dev:api": "bun run --cwd server dev",
-    "start": "bun --env-file=.dev.vars server/src/bun.ts",
+    "dev:api": "bun server/scripts/ensure-dev-vars.ts && bun run --cwd server dev",
+    "start": "bun server/scripts/ensure-dev-vars.ts && bun --env-file=.dev.vars server/src/bun.ts",
     "build": "bun run build:web && bun run build:server && bun run worker:check",
     "build:web": "bun run --cwd web-vue build",
     "build:server": "bun build server/src/bun.ts --target=bun --outfile=dist/server/bun.js",
