@@ -44,10 +44,10 @@ async function submit(): Promise<void> {
 
 <template>
   <section class="auth-card card">
-    <h1 class="section-title">Create account</h1>
-    <p class="section-copy">Sign up to access the protected area.</p>
+    <h1 class="title">Create account</h1>
+    <p class="lead">Sign up to access the protected area.</p>
 
-    <form class="auth-form" @submit.prevent="submit">
+    <form class="form" @submit.prevent="submit">
       <label class="field">
         <span>Name</span>
         <input v-model="name" type="text" name="name" autocomplete="name" required minlength="2" />

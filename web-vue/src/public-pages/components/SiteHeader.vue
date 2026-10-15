@@ -1,44 +1,45 @@
 <template>
   <header class="site-header shell">
-    <RouterLink class="brand" to="/">HVBC</RouterLink>
-
-    <nav>
-      <RouterLink to="/pricing">Pricing</RouterLink>
-      <RouterLink to="/contact">Contact</RouterLink>
-      <RouterLink class="button ghost" to="/login">Sign in</RouterLink>
-      <RouterLink class="button primary" to="/register">Create account</RouterLink>
+    <nav class="site-nav" aria-label="Main navigation">
+      <RouterLink class="brand" to="/"><span class="brand-mark" aria-hidden="true" />HVBC</RouterLink>
+      <RouterLink class="site-link" to="/pricing">Pricing</RouterLink>
+      <RouterLink class="site-link" to="/contact">Contact</RouterLink>
     </nav>
+
+    <div class="site-actions">
+      <RouterLink class="button secondary" to="/login">Sign in</RouterLink>
+      <RouterLink class="button primary" to="/register">Create account</RouterLink>
+    </div>
   </header>
 </template>
 
 <style scoped>
 .site-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 28px 0 16px;
+  padding: 20px 0;
 }
 
-.brand {
-  font-size: 1.1rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-nav {
+.site-nav {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 14px;
-  color: var(--text-soft);
+  gap: 24px;
 }
 
-@media (max-width: 720px) {
-  .site-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+.site-link {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.site-link:hover {
+  color: var(--text);
+}
+
+.site-actions {
+  display: flex;
+  gap: 8px;
 }
 </style>

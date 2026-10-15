@@ -35,13 +35,16 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-  <section class="page card">
-    <h1 class="section-title">Settings</h1>
-    <p class="section-copy">
-      Changing your password ends the sessions open on other devices. This session stays active.
-    </p>
+  <section class="app-page">
+    <header class="page-header">
+      <p class="kicker">Workspace</p>
+      <h1 class="title">Settings</h1>
+      <p class="lead">
+        Changing your password ends the sessions open on other devices. This session stays active.
+      </p>
+    </header>
 
-    <form class="settings-form" @submit.prevent="submit">
+    <form class="form" @submit.prevent="submit">
       <label class="field">
         <span>Current password</span>
         <input
@@ -74,24 +77,3 @@ async function submit(): Promise<void> {
     </form>
   </section>
 </template>
-
-<style scoped>
-.page {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: clamp(28px, 6vw, 48px);
-}
-
-.settings-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  max-width: 420px;
-  align-items: flex-start;
-}
-
-.settings-form .field {
-  width: 100%;
-}
-</style>

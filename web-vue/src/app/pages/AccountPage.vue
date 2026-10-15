@@ -36,17 +36,20 @@ async function submit(): Promise<void> {
 </script>
 
 <template>
-  <section class="page card">
-    <h1 class="section-title">Account</h1>
-    <p class="section-copy">Data for the authenticated account, returned by <code>/api/v1/me</code>.</p>
+  <section class="app-page">
+    <header class="page-header">
+      <p class="kicker">Workspace</p>
+      <h1 class="title">Account</h1>
+      <p class="lead">Data for the authenticated account, returned by <code>/api/v1/me</code>.</p>
+    </header>
 
-    <dl v-if="user" class="account-data">
+    <dl v-if="user" class="account-data card">
       <div><dt>Email</dt><dd>{{ user.email }}</dd></div>
       <div><dt>Identifier</dt><dd><code>{{ user.uuid }}</code></dd></div>
       <div><dt>Created at</dt><dd>{{ new Date(user.createdAt).toLocaleString() }}</dd></div>
     </dl>
 
-    <form class="account-form" @submit.prevent="submit">
+    <form class="form" @submit.prevent="submit">
       <label class="field">
         <span>Name</span>
         <input v-model="name" type="text" name="name" required minlength="2" maxlength="120" />
@@ -63,17 +66,7 @@ async function submit(): Promise<void> {
 </template>
 
 <style scoped>
-.page {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: clamp(28px, 6vw, 48px);
-}
-
 .account-data {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
   margin: 0;
 }
 
@@ -81,26 +74,21 @@ async function submit(): Promise<void> {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  padding: 12px 16px;
+}
+
+.account-data div + div {
+  border-top: 1px solid var(--border);
 }
 
 .account-data dt {
   min-width: 120px;
-  color: var(--text-soft);
+  color: var(--text-muted);
 }
 
 .account-data dd {
   margin: 0;
-}
-
-.account-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  max-width: 420px;
-  align-items: flex-start;
-}
-
-.account-form .field {
-  width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 </style>

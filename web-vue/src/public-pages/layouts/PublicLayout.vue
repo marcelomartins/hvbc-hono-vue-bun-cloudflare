@@ -19,7 +19,6 @@ import SiteHeader from "../components/SiteHeader.vue";
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  gap: 24px;
 }
 
 .public-shell > main {
@@ -27,8 +26,14 @@ import SiteHeader from "../components/SiteHeader.vue";
 }
 
 .public-footer {
-  padding: 24px 0 32px;
-  color: var(--text-soft);
-  font-size: 0.9rem;
+  margin-top: 64px;
+  padding: 20px 0 28px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.public-footer p {
+  margin: 0;
 }
 </style>
