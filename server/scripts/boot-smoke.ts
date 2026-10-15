@@ -84,7 +84,7 @@ try {
   for (const path of ["/index-spa", "/index-spa.html", "/INDEX-SPA.html", "/index-spa%2Ehtml"]) {
     await expectResponse(base, path, 404);
   }
-  await expectResponse(base, "/dashboard", 302);
+  await expectResponse(base, "/app", 302);
 
   const registered = await expectResponse(base, "/auth/register", 201, {
     method: "POST",
@@ -92,8 +92,8 @@ try {
     body: JSON.stringify({ name: "Boot Check", email: "boot@example.com", password: "correct horse battery staple" })
   });
   const cookie = registered.headers.get("set-cookie")?.split(";", 1)[0] ?? "";
-  const shell = await expectResponse(base, "/dashboard", 200, { headers: { cookie } });
-  if (!(await shell.text()).includes("<div id=\"app\">")) throw new Error("/dashboard did not serve the SPA shell");
+  const shell = await expectResponse(base, "/app", 200, { headers: { cookie } });
+  if (!(await shell.text()).includes("<div id=\"app\">")) throw new Error("/app did not serve the SPA shell");
 
   passed = true;
   console.info("The Bun server boots, migrates, serves the build, and gates the private shell.");

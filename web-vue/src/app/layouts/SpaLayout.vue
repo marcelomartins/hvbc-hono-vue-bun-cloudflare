@@ -46,7 +46,7 @@ onMounted(async () => {
   <div class="app-shell">
     <header class="topbar">
       <div class="shell topbar-content">
-        <RouterLink class="brand" to="/dashboard">HVBC</RouterLink>
+        <RouterLink class="brand" :to="{ name: 'overview' }">HVBC</RouterLink>
         <div class="topbar-user">
           <span>{{ user?.name ?? "Loading…" }}</span>
           <button class="text-button" type="button" :disabled="signingOut" @click="logout">
@@ -58,9 +58,9 @@ onMounted(async () => {
 
     <nav class="app-nav" aria-label="Main navigation">
       <div class="shell">
-        <RouterLink to="/dashboard">Overview</RouterLink>
-        <RouterLink to="/account">Account</RouterLink>
-        <RouterLink to="/settings">Settings</RouterLink>
+        <RouterLink :to="{ name: 'overview' }">Overview</RouterLink>
+        <RouterLink :to="{ name: 'account' }">Account</RouterLink>
+        <RouterLink :to="{ name: 'settings' }">Settings</RouterLink>
       </div>
     </nav>
 

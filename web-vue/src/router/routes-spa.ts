@@ -1,25 +1,23 @@
-import { PROTECTED_ROUTE_PREFIXES } from "@hvbc/contracts/routes";
+import { PROTECTED_HOME_ROUTE } from "@hvbc/contracts/routes";
 import type { RouteRecordRaw } from "vue-router";
-
-const [dashboardPath, accountPath, settingsPath] = PROTECTED_ROUTE_PREFIXES;
 
 export const spaRoutes: RouteRecordRaw[] = [
   {
-    path: "/",
+    path: PROTECTED_HOME_ROUTE,
     component: () => import("../app/layouts/SpaLayout.vue"),
     children: [
       {
-        path: dashboardPath.slice(1),
-        name: "dashboard",
-        component: () => import("../app/pages/DashboardPage.vue")
+        path: "",
+        name: "overview",
+        component: () => import("../app/pages/OverviewPage.vue")
       },
       {
-        path: accountPath.slice(1),
+        path: "account",
         name: "account",
         component: () => import("../app/pages/AccountPage.vue")
       },
       {
-        path: settingsPath.slice(1),
+        path: "settings",
         name: "settings",
         component: () => import("../app/pages/SettingsPage.vue")
       }

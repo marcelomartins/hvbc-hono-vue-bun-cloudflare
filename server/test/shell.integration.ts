@@ -4,7 +4,7 @@ import { apiRequest, registerUser } from "./helpers";
 
 describe("SPA shell gate", () => {
   it("sends anonymous visitors to the login page with the path to return to", async () => {
-    for (const path of ["/dashboard", "/account", "/settings", "/dashboard/nested", "/settings?tab=security"]) {
+    for (const path of ["/app", "/app/account", "/app/settings", "/app/settings/nested", "/app/settings?tab=security"]) {
       const response = await apiRequest(path);
       expect(response.status).toBe(302);
       expect(response.headers.get("location")).toBe(`/login?${new URLSearchParams({ next: path })}`);
@@ -16,7 +16,7 @@ describe("SPA shell gate", () => {
     const { cookie } = await registerUser("shell-user@example.com");
     // The asset layer is empty during tests, so the shell resolves to 404 unless a
     // frontend build is present. Either way, passing the gate means no redirect.
-    const response = await apiRequest("/dashboard", { cookie });
+    const response = await apiRequest("/app", { cookie });
     expect(response.status).not.toBe(302);
     expect([200, 404]).toContain(response.status);
   });
@@ -29,11 +29,11 @@ describe("SPA shell gate", () => {
     }
   });
 
-  it("redirects authenticated visitors from the home page to the dashboard", async () => {
+  it("redirects authenticated visitors from the home page to the protected area", async () => {
     const { cookie } = await registerUser("shell-home@example.com");
     const response = await apiRequest("/", { cookie });
     expect(response.status).toBe(302);
-    expect(response.headers.get("location")).toBe("/dashboard");
+    expect(response.headers.get("location")).toBe("/app");
   });
 
   it("keeps backend namespaces out of the asset fallback", async () => {

@@ -15,33 +15,33 @@ import {
 
 describe("login return path", () => {
   test("recognizes protected paths by whole segments", () => {
-    expect(isProtectedRoutePath("/dashboard")).toBe(true);
-    expect(isProtectedRoutePath("/settings/profile")).toBe(true);
-    expect(isProtectedRoutePath("/dashboardx")).toBe(false);
+    expect(isProtectedRoutePath("/app")).toBe(true);
+    expect(isProtectedRoutePath("/app/settings/profile")).toBe(true);
+    expect(isProtectedRoutePath("/appx")).toBe(false);
     expect(isProtectedRoutePath("/pricing")).toBe(false);
   });
 
   test("carries protected paths and drops everything else", () => {
-    expect(loginPath("/settings/profile?tab=security")).toBe(
-      "/login?next=%2Fsettings%2Fprofile%3Ftab%3Dsecurity"
+    expect(loginPath("/app/settings/profile?tab=security")).toBe(
+      "/login?next=%2Fapp%2Fsettings%2Fprofile%3Ftab%3Dsecurity"
     );
     expect(loginPath("/pricing")).toBe("/login");
-    expect(loginPath("//evil.example/dashboard")).toBe("/login");
+    expect(loginPath("//evil.example/app")).toBe("/login");
   });
 
   test("accepts only same-origin protected paths from the query string", () => {
-    expect(returnPathFromQuery("?next=%2Faccount%3Fx%3D1", "/dashboard")).toBe("/account?x=1");
+    expect(returnPathFromQuery("?next=%2Fapp%2Faccount%3Fx%3D1", "/app")).toBe("/app/account?x=1");
     for (const value of [
-      "https://evil.example/dashboard",
-      "//evil.example/dashboard",
-      "/\\evil.example/dashboard",
-      "/dashboard/../login",
+      "https://evil.example/app",
+      "//evil.example/app",
+      "/\\evil.example/app",
+      "/app/../login",
       "/pricing",
       "javascript:alert(1)"
     ]) {
-      expect(returnPathFromQuery(`?${new URLSearchParams({ next: value })}`, "/dashboard")).toBe("/dashboard");
+      expect(returnPathFromQuery(`?${new URLSearchParams({ next: value })}`, "/app")).toBe("/app");
     }
-    expect(returnPathFromQuery("", "/dashboard")).toBe("/dashboard");
+    expect(returnPathFromQuery("", "/app")).toBe("/app");
   });
 });
 
@@ -64,7 +64,7 @@ describe("route registry", () => {
     // A leftover pattern would keep invoking the Worker for a route the registry no
     // longer has, so the list must equal what the registry needs, not just contain it.
     const expected = [
-      // The home page is public but redirects signed-in visitors to the dashboard.
+      // The home page is public but redirects signed-in visitors to the protected area.
       "/",
       ...[...BACKEND_ROUTE_PREFIXES, ...PROTECTED_ROUTE_PREFIXES, PROTECTED_SPA_SHELL_ASSET_PATH].flatMap(
         (route) => [route, `${route}/*`]

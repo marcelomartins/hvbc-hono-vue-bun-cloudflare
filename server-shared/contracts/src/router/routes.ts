@@ -10,11 +10,10 @@ export const NOT_FOUND_SSG_ROUTE = "/404";
 
 export const BACKEND_ROUTE_PREFIXES = ["/health", "/auth", "/api"] as const;
 
-export const PROTECTED_ROUTE_PREFIXES = [
-  "/dashboard",
-  "/account",
-  "/settings"
-] as const;
+/** Where signed-in users land. Every page of the protected area lives under it. */
+export const PROTECTED_HOME_ROUTE = "/app";
+
+export const PROTECTED_ROUTE_PREFIXES = [PROTECTED_HOME_ROUTE] as const;
 
 export const PROTECTED_SPA_SHELL_ASSET_PATH = "/index-spa";
 

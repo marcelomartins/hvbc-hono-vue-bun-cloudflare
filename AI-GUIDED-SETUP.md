@@ -1,8 +1,8 @@
-# SETUP
+# AI-Guided Setup
 
-How to turn this framework into a new project. Written for an AI agent to follow, and readable by a person who wants to do it by hand.
+An optional script for an AI agent that turns this framework into a new project together with someone who has never set one up. Nothing in the framework depends on it: the same steps, without the interview, are in "Starting a new project from this framework" in the README.
 
-This file applies only while `scripts/init.ts` exists. Both are deleted at the end.
+It drives `bun run init`. If `scripts/init.ts` is gone, the project has already been initialized and this guide no longer applies.
 
 ## How to run this
 
@@ -87,18 +87,14 @@ bun run dev
 
 `bun run init` does not touch Markdown, so do it here.
 
-- `README.md`: replace the title, the opening description, and the attribution line so they describe their project instead of the framework. Drop the parts that only exist to explain the framework itself: the "Starting a new project from this framework" subsection, "Running Outside Cloudflare" unless they care about leaving Cloudflare, and "Contributing" unless the project takes contributions. Keep everything that describes how their application works: architecture, repository layout, routing, API surface, database, testing, scripts, and deployment.
+- `README.md`: replace the title, the opening description, and the attribution line so they describe their project instead of the framework. Drop the parts that only exist to explain the framework itself: "Running Outside Cloudflare" unless they care about leaving Cloudflare, and "Contributing" unless the project takes contributions. Keep everything that describes how their application works: architecture, repository layout, routing, API surface, database, testing, scripts, and deployment.
 - `AGENTS.md`: nothing to change. It holds generic rules that stay valid.
 - `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, and `.github/ISSUE_TEMPLATE/`: these describe contributing to the framework and name its maintainer. Delete them unless the project takes outside contributions; if it does, rewrite the contact details and the project-specific parts.
 - If they asked for a non-English interface in question 4, translate the visible strings in `web-vue/src/**/*.vue`, the message map in `web-vue/src/i18n/messages.ts`, and the welcome email in `server/src/email/messages.ts`, then set the matching `lang` in `web-vue/index.html`, `web-vue/index-spa.html`, and `web-vue/src/App.vue`. Code, tests, and logs stay in English.
 
 ## 6. Clean up
 
-Delete the `scripts/` directory and this file. Deleting only `scripts/init.ts` leaves `scripts/tsconfig.json` without inputs and breaks `bun run typecheck`, so also:
-
-- in `package.json`, remove the `init` script and the `tsc --noEmit -p scripts/tsconfig.json && ` prefix of `typecheck`;
-- in `README.md`, remove the `bun run init` row of the scripts table;
-- in `AGENTS.md`, remove the setup bullet that points here and the invariant about `scripts/init.ts`.
+Remove the bootstrap tooling as described at the end of "Starting a new project from this framework" in the README, which also removes that subsection, and delete this file.
 
 If the repository was created from the template, clear the leftover issue and pull request templates you decided not to keep. Then run `bun run verify` one last time.
 

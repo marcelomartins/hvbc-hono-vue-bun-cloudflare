@@ -2,6 +2,7 @@ import {
   BACKEND_ROUTE_PREFIXES,
   loginPath,
   PRIVATE_SPA_SHELL_PATHS,
+  PROTECTED_HOME_ROUTE,
   PROTECTED_ROUTE_PREFIXES,
   PROTECTED_SPA_SHELL_ASSET_PATH
 } from "@hvbc/contracts/routes";
@@ -84,7 +85,7 @@ export function createApp(hooks: RuntimeHooks): Hono<AppBindings> {
   app.get("/", async (context) => {
     if (await resolveAuthenticatedUser(context)) {
       context.header("Cache-Control", "private, no-store");
-      return context.redirect("/dashboard", 302);
+      return context.redirect(PROTECTED_HOME_ROUTE, 302);
     }
     return serveAsset(context, "/");
   });

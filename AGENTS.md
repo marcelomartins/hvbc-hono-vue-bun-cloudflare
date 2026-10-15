@@ -9,7 +9,6 @@
 - There should be no unnecessary or unused code, and no unused files.
 - Do not create documentation files unless they are clearly requested.
 - Do not use Git to commit changes. Git may only be used to view or inspect changes.
-- If `scripts/init.ts` still exists, this is either the framework itself or a project created from it that has not been initialized yet. Unless the user has said which, ask before changing anything; for a new project, follow [`SETUP.md`](./SETUP.md) before any other work.
 - Read [`README.md`](./README.md) for the stack, the architecture, the routing model, and the API surface before changing code.
 
 ## Architecture Invariants

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PROTECTED_HOME_ROUTE } from "@hvbc/contracts/routes";
 import { ref, useTemplateRef } from "vue";
 import { apiFetch } from "../api/client";
 import { authErrorText, navigate } from "./auth-feedback";
@@ -32,7 +33,7 @@ async function submit(): Promise<void> {
       },
       authenticated: false
     });
-    navigate("/dashboard");
+    navigate(PROTECTED_HOME_ROUTE);
   } catch (error) {
     feedback.value = authErrorText(error);
     turnstile.value?.reset();

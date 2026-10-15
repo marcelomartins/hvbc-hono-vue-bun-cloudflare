@@ -186,4 +186,4 @@ if (!options.createDatabase) {
   console.log(`  2. Run: bunx wrangler d1 create ${options.name} and copy database_id into wrangler.jsonc`);
 }
 console.log("  3. Run: bun install && bun run verify");
-console.log("  4. Remove the bootstrap tooling as described in the clean-up step of SETUP.md.");
+console.log("  4. Remove the bootstrap tooling as described in README.md (Quick Start).");

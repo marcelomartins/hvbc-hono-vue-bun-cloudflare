@@ -47,9 +47,9 @@ Browser request
   |      -> Cloudflare asset layer resolves prerendered HTML without invoking the Worker
   |
   +-> Home (/)
-  |      -> Worker redirects authenticated users to /dashboard, otherwise serves the SSG page
+  |      -> Worker redirects authenticated users to /app, otherwise serves the SSG page
   |
-  +-> Protected route (/dashboard, /account, /settings)
+  +-> Protected area (/app, /app/account, /app/settings)
   |      -> Worker checks the session cookie first; anonymous visitors go to /login?next=<path>
   |      -> Worker fetches the canonical /index-spa asset
   |      -> Vue SPA loads protected modules
@@ -116,7 +116,7 @@ Requirements: [Bun](https://bun.sh/), [Node.js](https://nodejs.org/) 22.12 or ne
 
 ### Starting a new project from this framework
 
-If you would rather be walked through it, point your AI agent at [`SETUP.md`](./SETUP.md) and it will run the steps below as an interview. To do it by hand, clone the repository and rename every identifier with the bootstrap script:
+Clone the repository and rename every identifier with the bootstrap script:
 
 ```bash
 bun run init --name minha-app --title "Minha App" --host app.minhaapp.com
@@ -133,7 +133,13 @@ It rewrites the package names, the Worker name, the D1 database name, the sessio
 | `--create-d1` | Create the D1 database and write its `database_id` |
 | `--dry-run` | List the files that would change without writing anything |
 
-Afterwards, review `README.md` and `AGENTS.md` (they still describe the framework), then remove the bootstrap tooling as described in the [clean-up step of `SETUP.md`](./SETUP.md#6-clean-up). Deleting only `scripts/init.ts` breaks `bun run typecheck`.
+Afterwards, review `README.md` and `AGENTS.md` (they still describe the framework), then remove the bootstrap tooling. Delete the `scripts/` directory; deleting only `scripts/init.ts` leaves `scripts/tsconfig.json` without inputs and breaks `bun run typecheck`, so also:
+
+- in `package.json`, remove the `init` script and the `tsc --noEmit -p scripts/tsconfig.json && ` prefix of `typecheck`;
+- in this README, remove this subsection and the `bun run init` row of the scripts table;
+- in `AGENTS.md`, remove the invariant about `scripts/init.ts`.
+
+Then run `bun run verify`.
 
 ### Running it
 
@@ -168,9 +174,9 @@ bun run dev
 ### Routing and rendering
 
 - Public pages generated with SSG: `/`, `/pricing`, `/contact`, `/login`, `/register`, plus a prerendered `404` page.
-- Protected SPA routes served only after Worker-side auth: `/dashboard`, `/account`, `/settings`.
+- Protected SPA routes served only after Worker-side auth, all under `/app`: `/app`, `/app/account`, `/app/settings`.
 - A single route registry in [`server-shared/contracts/src/router/routes.ts`](./server-shared/contracts/src/router/routes.ts) drives the Worker, the Vue router, the SSG page list, and a contract test that validates `wrangler.jsonc` coverage.
-- Authenticated visitors hitting `/` are redirected to `/dashboard` by the Worker. Anonymous visitors of a protected route are sent to `/login?next=<path>`, and signing in returns them there; only same-origin protected paths are accepted as `next`, so it cannot become an open redirect.
+- Authenticated visitors hitting `/` are redirected to `/app` by the Worker, which is also where signing in and registering lead. Anonymous visitors of a protected route are sent to `/login?next=<path>`, and signing in returns them there; only same-origin protected paths are accepted as `next`, so it cannot become an open redirect.
 - The Worker gate decides who receives the SPA shell, not who can read the protected pages' code. Their JavaScript chunks are public files under `/assets/*`, like any other static asset. Protection comes from the Worker and the API, never from keeping the bundle secret: put no secrets, private data, or authorization decisions in frontend code.
 
 ### Authentication and security
@@ -308,7 +314,8 @@ Every routing decision derives from [`server-shared/contracts/src/router/routes.
 - `PUBLIC_SSG_ROUTES`: prerendered public pages. Consumed by `includedRoutes` in [`web-vue/src/main.ts`](./web-vue/src/main.ts), by the generated `sitemap.xml`, and by `check-client-build`. The asset layer serves these pages without invoking the Worker.
 - `NOT_FOUND_SSG_ROUTE`: the prerendered `404` page used by Cloudflare's `not_found_handling`.
 - `BACKEND_ROUTE_PREFIXES`: `/health`, `/auth`, `/api`. The Worker returns JSON 404s inside these namespaces instead of falling back to assets.
-- `PROTECTED_ROUTE_PREFIXES`: routes gated by Worker auth before the SPA shell is served.
+- `PROTECTED_HOME_ROUTE`: `/app`, where signed-in users land and under which every protected page lives.
+- `PROTECTED_ROUTE_PREFIXES`: prefixes gated by Worker auth before the SPA shell is served. Only `/app` by default.
 - `PROTECTED_SPA_SHELL_ASSET_PATH` and `PRIVATE_SPA_SHELL_PATHS`: the private shell, never served to direct browser requests.
 
 The contract test [`routes.test.ts`](./server-shared/contracts/src/router/routes.test.ts) keeps the groups disjoint and requires `run_worker_first` in `wrangler.jsonc` to match the registry exactly: it fails when a backend or protected route lacks its patterns, and when a pattern is left over after its route was removed.
@@ -323,12 +330,10 @@ The contract test [`routes.test.ts`](./server-shared/contracts/src/router/routes
 ### Adding a protected route
 
 1. Create the page component under `web-vue/src/app/pages`.
-2. Register the Vue route in [`web-vue/src/router/routes-spa.ts`](./web-vue/src/router/routes-spa.ts).
-3. Add the top-level prefix to `PROTECTED_ROUTE_PREFIXES` in the route registry.
-4. Add the exact and wildcard patterns to `assets.run_worker_first` in [`wrangler.jsonc`](./wrangler.jsonc). `bun run test` fails when either pattern is missing.
-5. If the route should appear in the authenticated navigation, add the link in [`SpaLayout.vue`](./web-vue/src/app/layouts/SpaLayout.vue).
+2. Add it as a child of `/app` in [`web-vue/src/router/routes-spa.ts`](./web-vue/src/router/routes-spa.ts). The `/app` prefix and the `/app/*` pattern in `wrangler.jsonc` already gate it, so neither the route registry nor `wrangler.jsonc` changes.
+3. If the route should appear in the authenticated navigation, add the link in [`SpaLayout.vue`](./web-vue/src/app/layouts/SpaLayout.vue).
 
-Nested routes under an existing protected prefix (such as `/settings/profile`) only need the Vue route record; the shared prefix and the `/settings/*` pattern already cover them.
+A protected area outside `/app`, such as `/admin`, needs its prefix in `PROTECTED_ROUTE_PREFIXES` and its exact and wildcard patterns in `assets.run_worker_first`. `bun run test` fails when either pattern is missing.
 
 ## API Surface
 
