@@ -9,7 +9,7 @@
 - There should be no unnecessary or unused code, and no unused files.
 - Do not create documentation files unless they are clearly requested.
 - Do not use Git to commit changes. Git may only be used to view or inspect changes.
-- Read [`README.md`](./README.md) for the stack, the architecture, the routing model, and the API surface before changing code.
+- Read [`README.md`](./README.md) for the stack, the layout, and how to run the project before changing code.
 
 ## Architecture Invariants
 
@@ -41,12 +41,12 @@
 - Do not put secrets in `wrangler.jsonc`, code, or committed files.
 - Declare every optional binding in `server/vitest.config.ts` and pin every optional variable in `server/scripts/boot-smoke.ts`, so neither depends on the developer's `.dev.vars` or `.env`.
 - Define browser security headers only in `server-shared/contracts/src/http/security-headers.ts`: the Worker applies them and the build generates `_headers` from them. Never hand-write `_headers`, `robots.txt`, or `sitemap.xml`; the build generates them.
-- `scripts/init.ts` holds the identifiers it rewrites, so it must keep excluding itself from the walk. Update it whenever a new framework identifier is introduced.
+- `scripts/init.ts` holds the identifiers it rewrites, so it must keep excluding itself from the walk. Update it whenever a new framework identifier is introduced. When it finishes it removes itself, its `package.json` script, the `### Start a new project` README section, and this line, finding them by their exact text, so keep that text in step with the script.
 - Never pass secrets as Docker build arguments or bake them into the image; `APP_ORIGIN` is the only build argument.
 - Do not add remote bindings, deploy, use remote D1, set secrets, change DNS, or push images to a registry without explicit authorization.
 
 ## Verification
 
-Run `bun run verify` before completing shared changes; the [Available Scripts](./README.md#available-scripts) table lists the individual steps to use while iterating. Also confirm the Worker still bundles with `DB` and `ASSETS`, and that the Bun server bundles and boots (`bun run test:boot`, part of `verify`).
+Run `bun run verify` before completing shared changes; while iterating, run its individual steps from the `scripts` in [`package.json`](./package.json). Also confirm the Worker still bundles with `DB` and `ASSETS`, and that the Bun server bundles and boots (`bun run test:boot`, part of `verify`).
 
 Targeted tests are appropriate while iterating. All integration tests must use local workerd/Miniflare bindings. The Bun target is covered by unit tests of its adapters and by `bun run test:boot`; do not duplicate the integration suite for it. Do not start `bun run dev` or run browser tests unless the task explicitly requires runtime validation.

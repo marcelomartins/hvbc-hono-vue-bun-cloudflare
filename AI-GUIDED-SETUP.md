@@ -1,6 +1,6 @@
 # AI-Guided Setup
 
-An optional script for an AI agent that turns this framework into a new project together with someone who has never set one up. Nothing in the framework depends on it: the same steps, without the interview, are in "Starting a new project from this framework" in the README.
+An optional script for an AI agent that turns this framework into a new project together with someone who has never set one up. Nothing in the framework depends on it: the same steps, without the interview, are in "Start a new project" in the README.
 
 It drives `bun run init`. If `scripts/init.ts` is gone, the project has already been initialized and this guide no longer applies.
 
@@ -45,7 +45,7 @@ bun run init --name <name> --title "<Title>" --host <host> --dry-run
 
 Show them the summary, then run the same command without `--dry-run`.
 
-This rewrites the package names, the Worker name, the D1 database name, the session cookie, the package scope, and the product name in code. It does **not** rewrite Markdown files; step 5 covers those.
+This rewrites the package names, the Worker name, the D1 database name, the session cookie, the package scope, and the product name in code, then removes the script and its references. It does **not** rewrite the rest of the Markdown files; step 5 covers those.
 
 ## 3. Cloudflare (skip when they have no account)
 
@@ -61,7 +61,7 @@ Then create the database:
 bunx wrangler d1 create <name>
 ```
 
-Copy the `database_id` from the output into `wrangler.jsonc`, replacing the zeroed placeholder. Re-running step 2 with `--create-d1` does both in one pass instead.
+Copy the `database_id` from the output into `wrangler.jsonc`, replacing the zeroed placeholder.
 
 Stop there. Do not deploy, do not set production secrets, and do not run migrations with `--remote`. Deployment is documented in the README and is a separate decision the person makes explicitly.
 
@@ -87,15 +87,15 @@ bun run dev
 
 `bun run init` does not touch Markdown, so do it here.
 
-- `README.md`: replace the title, the opening description, and the attribution line so they describe their project instead of the framework. Drop the parts that only exist to explain the framework itself: "Running Outside Cloudflare" unless they care about leaving Cloudflare, and "Contributing" unless the project takes contributions. Keep everything that describes how their application works: architecture, repository layout, routing, API surface, database, testing, scripts, and deployment.
+- `README.md`: replace the title, the tagline, the opening description, and the license attribution so they describe their project instead of the framework. Drop "Contributing" unless the project takes contributions, and the deployment section of the runtime they will not use. Keep "Before going live".
 - `AGENTS.md`: nothing to change. It holds generic rules that stay valid.
 - `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, and `.github/ISSUE_TEMPLATE/`: these describe contributing to the framework and name its maintainer. Delete them unless the project takes outside contributions; if it does, rewrite the contact details and the project-specific parts.
 - If they asked for a non-English interface in question 4, translate the visible strings in `web-vue/src/**/*.vue`, the message map in `web-vue/src/i18n/messages.ts`, and the welcome email in `server/src/email/messages.ts`, then set the matching `lang` in `web-vue/index.html`, `web-vue/index-spa.html`, and `web-vue/src/App.vue`. Code, tests, and logs stay in English.
 
 ## 6. Clean up
 
-Remove the bootstrap tooling as described at the end of "Starting a new project from this framework" in the README, which also removes that subsection, and delete this file.
+Delete this file. `bun run init` already removed itself and its references in step 2.
 
 If the repository was created from the template, clear the leftover issue and pull request templates you decided not to keep. Then run `bun run verify` one last time.
 
-Finish by telling them what they now have: a working local application with registration, login, an account page, and a protected area. Point them at the README for adding a public route, adding a protected route, and deploying when they are ready.
+Finish by telling them what they now have: a working local application with registration, login, an account page, and a protected area. Point them at the README for deploying when they are ready.

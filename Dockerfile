@@ -1,5 +1,5 @@
 # Self-hosted image: the Bun server, the prerendered frontend, and the migrations.
-# TLS is not terminated here; see "Self-hosted with Bun and Docker" in README.md.
+# TLS is not terminated here; see "Bun with Docker" in README.md.
 
 # Keep in step with "packageManager" in package.json.
 ARG BUN_VERSION=1.3.4

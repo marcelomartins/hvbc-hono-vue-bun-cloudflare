@@ -1,11 +1,11 @@
 /**
- * Turns this framework into a new project: renames every identifier and optionally
- * provisions the D1 database.
+ * Turns this framework into a new project: renames every identifier, optionally
+ * provisions the D1 database, and then removes itself.
  *
- *   bun run init --name minha-app --title "Minha App" --host app.minhaapp.com
+ *   bun run init --name my-app --title "My App" --host app.example.com
  */
 import { spawnSync } from "node:child_process";
-import { readdir } from "node:fs/promises";
+import { readdir, rm } from "node:fs/promises";
 import { relative, resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dir, "..");
@@ -29,6 +29,11 @@ const NAME_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,44}[a-z0-9])$/u;
 const HOST_PATTERN = /^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])$/u;
 const SCOPE_PATTERN = /^@[a-z0-9](?:[a-z0-9-]*[a-z0-9])$/u;
 const DATABASE_ID_PATTERN = /database_id"?\s*[:=]\s*"([0-9a-f-]{36})"/u;
+
+// The clean-up finds these by their exact text, so README.md and AGENTS.md must keep it.
+const README_SECTION = "### Start a new project";
+const AGENTS_INVARIANT = "- `scripts/init.ts` ";
+const TYPECHECK_PREFIX = "tsc --noEmit -p scripts/tsconfig.json && ";
 
 interface Options {
   name: string;
@@ -62,7 +67,7 @@ function readArguments(argv: string[]): Options {
 
   const name = values.get("name");
   if (name === undefined) {
-    fail('missing --name. Example: bun run init --name minha-app --title "Minha App"');
+    fail('missing --name. Example: bun run init --name my-app --title "My App"');
   }
   if (!NAME_PATTERN.test(name)) {
     fail("--name must be lowercase letters, digits and dashes (2 to 46 characters)");
@@ -144,6 +149,59 @@ async function applyDatabaseId(databaseId: string): Promise<void> {
   await Bun.write(path, source.replace("00000000-0000-0000-0000-000000000000", databaseId));
 }
 
+async function rewrite(path: string, edit: (source: string) => string, dryRun: boolean): Promise<boolean> {
+  const source = await Bun.file(path).text();
+  const updated = edit(source);
+  if (updated === source) return false;
+  if (!dryRun) await Bun.write(path, updated);
+  return true;
+}
+
+function newlineOf(source: string): string {
+  return source.includes("\r\n") ? "\r\n" : "\n";
+}
+
+function editLines(source: string, edit: (lines: string[]) => string[]): string {
+  return edit(source.split(/\r?\n/u)).join(newlineOf(source));
+}
+
+function withoutReadmeSection(lines: string[]): string[] {
+  const start = lines.indexOf(README_SECTION);
+  if (start === -1) return lines;
+  const length = lines.slice(start + 1).findIndex((line) => line.startsWith("## ") || line.startsWith("### "));
+  return [...lines.slice(0, start), ...(length === -1 ? [] : lines.slice(start + 1 + length))];
+}
+
+function withoutInitScript(source: string): string {
+  const manifest = JSON.parse(source) as { scripts: Record<string, string> };
+  const typecheck = manifest.scripts["typecheck"];
+  if (manifest.scripts["init"] === undefined && !typecheck?.includes(TYPECHECK_PREFIX)) return source;
+  delete manifest.scripts["init"];
+  if (typecheck !== undefined) manifest.scripts["typecheck"] = typecheck.replace(TYPECHECK_PREFIX, "");
+  const newline = newlineOf(source);
+  return `${JSON.stringify(manifest, null, 2).replaceAll("\n", newline)}${newline}`;
+}
+
+/** Removes this script and every reference to it, which only make sense before initialization. */
+async function removeBootstrapTooling(dryRun: boolean): Promise<void> {
+  const verb = dryRun ? "would remove" : "removed";
+  const steps: Array<[string, string, (source: string) => string]> = [
+    ["package.json", "the init script from package.json", withoutInitScript],
+    ["README.md", "the \"Start a new project\" section from README.md", (source) => editLines(source, withoutReadmeSection)],
+    [
+      "AGENTS.md",
+      "the scripts/init.ts invariant from AGENTS.md",
+      (source) => editLines(source, (lines) => lines.filter((line) => !line.startsWith(AGENTS_INVARIANT)))
+    ]
+  ];
+  for (const [file, description, edit] of steps) {
+    const changed = await rewrite(resolve(ROOT, file), edit, dryRun);
+    console.log(changed ? `  ${verb} ${description}` : `  could not find ${description}; remove it by hand`);
+  }
+  if (!dryRun) await rm(import.meta.dir, { recursive: true, force: true });
+  console.log(`  ${verb} scripts/`);
+}
+
 const options = readArguments(process.argv.slice(2));
 
 console.log(
@@ -164,10 +222,14 @@ if (options.createDatabase && !options.dryRun) {
   }
 }
 
+await removeBootstrapTooling(options.dryRun);
+
+const nextSteps = [
+  "Review README.md and AGENTS.md; they still describe the framework.",
+  ...(options.createDatabase
+    ? []
+    : [`Run: bunx wrangler d1 create ${options.name} and copy database_id into wrangler.jsonc`]),
+  "Run: bun install && bun run verify"
+];
 console.log("\nNext steps:");
-console.log("  1. Review README.md and AGENTS.md; they still describe the framework.");
-if (!options.createDatabase) {
-  console.log(`  2. Run: bunx wrangler d1 create ${options.name} and copy database_id into wrangler.jsonc`);
-}
-console.log("  3. Run: bun install && bun run verify");
-console.log("  4. Remove the bootstrap tooling as described in README.md (Quick Start).");
+nextSteps.forEach((step, index) => console.log(`  ${index + 1}. ${step}`));
