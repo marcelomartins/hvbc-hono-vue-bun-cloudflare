@@ -4,6 +4,12 @@ APP_HOST=localhost
 APP_ORIGIN=http://localhost
 SESSION_SECRET=
 
+# Bun server only. Relative paths are resolved from the project root.
+# PORT=3000
+# 0.0.0.0 listens on every network interface.
+# LISTEN_HOST=127.0.0.1
+# DATABASE_PATH=.data/app.sqlite
+
 # Optional email delivery. Use "console" locally to print messages in the terminal,
 # "ses" to deliver through Amazon SES, or "none" to disable it.
 EMAIL_DRIVER=console

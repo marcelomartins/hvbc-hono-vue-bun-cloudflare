@@ -68,6 +68,13 @@ async function expectResponse(
   return response;
 }
 
+// Under nosniff, a page or module without its type renders as text or is blocked.
+function expectContentType(response: Response, path: string, expected: string): void {
+  if (!response.headers.get("content-type")?.startsWith(expected)) {
+    throw new Error(`${path}: expected a ${expected} Content-Type, received ${response.headers.get("content-type")}`);
+  }
+}
+
 let passed = false;
 try {
   const port = await Promise.race([
@@ -78,7 +85,11 @@ try {
 
   await expectResponse(base, "/health", 200);
   await expectResponse(base, "/health/ready", 200);
-  await expectResponse(base, "/", 200);
+  const home = await expectResponse(base, "/", 200);
+  expectContentType(home, "/", "text/html");
+  const script = /<script type="module"[^>]* src="(\/assets\/[^"]+\.js)"/u.exec(await home.text())?.[1];
+  if (script === undefined) throw new Error("/ does not load a module script from /assets/");
+  expectContentType(await expectResponse(base, script, 200), script, "text/javascript");
   await expectResponse(base, "/pricing", 200);
   await expectResponse(base, "/no-such-page", 404);
   for (const path of ["/index-spa", "/index-spa.html", "/INDEX-SPA.html", "/index-spa%2Ehtml"]) {
@@ -96,7 +107,7 @@ try {
   if (!(await shell.text()).includes("<div id=\"app\">")) throw new Error("/app did not serve the SPA shell");
 
   passed = true;
-  console.info("The Bun server boots, migrates, serves the build, and gates the private shell.");
+  console.info("The Bun server boots, migrates, serves the build with its content types, and gates the private shell.");
 } finally {
   server.kill();
   await server.exited;

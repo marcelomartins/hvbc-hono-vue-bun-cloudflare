@@ -56,7 +56,7 @@ It renames the packages, the Worker, the database, the session cookie, and the p
 | Command | Purpose |
 | --- | --- |
 | `bun run dev` | Run the app locally with hot reload, on the Workers runtime |
-| `bun run start` | Run the built app on Bun with a local SQLite database (run `bun run build:web` first) |
+| `bun run start` | Build the frontend and run the app on Bun with a local SQLite database |
 | `bun run build` | Build the frontend and the Bun server, and check the Worker bundle |
 | `bun run test:all` | Run unit and integration tests |
 | `bun run verify` | Run everything: lint, typecheck, tests, build, and boot check |
