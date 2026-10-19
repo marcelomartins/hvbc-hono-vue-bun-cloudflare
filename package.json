@@ -33,7 +33,7 @@
     "knip": "6.41.0",
     "oxlint": "1.88.0",
     "typescript": "^6.0.3",
-    "wrangler": "^4.150.0"
+    "wrangler": "^4.151.0"
   },
   "overrides": {
     "sharp": "0.35.5",

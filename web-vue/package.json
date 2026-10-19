@@ -18,7 +18,7 @@
     "vue-router": "^5.4.0"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.63.2",
+    "@cloudflare/vite-plugin": "^1.64.0",
     "@types/bun": "^1.4.3",
     "@vitejs/plugin-vue": "^6.0.10",
     "typescript": "^6.0.3",
