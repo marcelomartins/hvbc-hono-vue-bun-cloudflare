@@ -1,0 +1,69 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "hvbc",
+  "main": "./server/src/cloudflare.ts",
+  // Keep at or below the date supported by the workerd bundled with
+  // @cloudflare/vitest-pool-workers, so integration tests run with production semantics.
+  "compatibility_date": "2026-08-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": false
+    }
+  },
+  "assets": {
+    "directory": "./dist/web-vue",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page",
+    "run_worker_first": [
+      "/",
+      "/auth",
+      "/auth/*",
+      "/api",
+      "/api/*",
+      "/health",
+      "/health/*",
+      "/app",
+      "/app/*",
+      "/index-spa",
+      "/index-spa/*",
+      "/index-spa.html",
+      "!/assets/*"
+    ]
+  },
+  "vars": {
+    "ENVIRONMENT": "production",
+    "APP_HOST": "hvbc.invalid",
+    "APP_ORIGIN": "https://hvbc.invalid",
+    // Optional email delivery: "none" (default), "console" (local only) or "ses".
+    // "ses" also requires SES_REGION, SES_FROM and the AWS secrets.
+    "EMAIL_DRIVER": "none",
+    "SES_REGION": "",
+    "SES_FROM": "",
+    // Optional Turnstile: set this together with the TURNSTILE_SECRET_KEY secret.
+    "TURNSTILE_SITE_KEY": "",
+    // Optional rate limiting of /auth/login and /auth/register: "true" also requires
+    // the AUTH_RATE_LIMITER binding below to be uncommented.
+    "AUTH_RATE_LIMIT": "false"
+  },
+  // "ratelimits": [
+  //   {
+  //     "name": "AUTH_RATE_LIMITER",
+  //     "namespace_id": "1001",
+  //     // At most 20 attempts per key every 60 seconds (period must be 10 or 60).
+  //     "simple": { "limit": 20, "period": 60 }
+  //   }
+  // ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "hvbc",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "./server/migrations"
+    }
+  ]
+}
