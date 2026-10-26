@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PASSWORD_MAX_CODE_POINTS, PASSWORD_MIN_CODE_POINTS } from "@hvbc/contracts/limits";
 import { ref } from "vue";
 import { apiFetch } from "../../api/client";
 import { ApiError } from "../../api/errors";
@@ -53,6 +54,7 @@ async function submit(): Promise<void> {
           name="currentPassword"
           autocomplete="current-password"
           required
+          :maxlength="PASSWORD_MAX_CODE_POINTS"
         />
       </label>
 
@@ -64,7 +66,8 @@ async function submit(): Promise<void> {
           name="newPassword"
           autocomplete="new-password"
           required
-          minlength="8"
+          :minlength="PASSWORD_MIN_CODE_POINTS"
+          :maxlength="PASSWORD_MAX_CODE_POINTS"
         />
       </label>
 

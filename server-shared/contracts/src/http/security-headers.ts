@@ -1,9 +1,10 @@
-// The Worker applies these headers to its responses and the frontend build writes
-// them into `_headers` for the statically served pages, so both share one policy.
+// The server applies these headers to its responses and the frontend build writes
+// them into `_headers` for the pages Cloudflare serves without running the Worker,
+// so both share one policy.
 
 // Allowed even while Turnstile is disabled: public pages become a SPA after
 // hydration, so every public document must already permit the widget, and a
-// build-time switch could drift from the Worker's runtime configuration.
+// build-time switch could drift from the server's runtime configuration.
 const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
 
 export const CONTENT_SECURITY_POLICY = [

@@ -12,8 +12,8 @@ import { applyMigrations } from "./runtime/bun/migrations";
 
 useJsonLogLines();
 
-// Invalid configuration stops the process before it listens, so a container
-// restarts visibly instead of answering 500 to every request.
+// Invalid configuration stops the process before it listens, so a process manager
+// restarts it visibly instead of it answering 500 to every request.
 async function start(): Promise<void> {
   const { variables, options } = readBunEnvironment(process.env);
   assertRuntimeConfiguration(variables);

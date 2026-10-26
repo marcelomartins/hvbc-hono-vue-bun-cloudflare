@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 // Boots the bundled Bun server against the real frontend build and an empty
-// database, as the Docker image runs it. Run from the repository root after `build`.
+// database, as a production deployment runs it. Run from the repository root after `build`.
 const dataDirectory = await mkdtemp(join(tmpdir(), "hvbc-boot-"));
 
 // Every variable the server reads is pinned, so nothing from the shell or a local
@@ -12,13 +12,12 @@ const server = Bun.spawn([process.execPath, "dist/server/bun.js"], {
   env: {
     ...process.env,
     ENVIRONMENT: "local",
-    APP_HOST: "localhost",
     APP_ORIGIN: "http://localhost",
     ALLOW_INSECURE_HTTP: "",
     SESSION_SECRET: `${crypto.randomUUID()}${crypto.randomUUID()}`,
     EMAIL_DRIVER: "none",
+    EMAIL_FROM: "",
     SES_REGION: "",
-    SES_FROM: "",
     AWS_ACCESS_KEY_ID: "",
     AWS_SECRET_ACCESS_KEY: "",
     TURNSTILE_SITE_KEY: "",

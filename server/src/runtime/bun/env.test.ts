@@ -7,7 +7,6 @@ import { assertBuildOrigin, readBunEnvironment } from "./env";
 
 const REQUIRED = {
   ENVIRONMENT: "production",
-  APP_HOST: "app.example",
   APP_ORIGIN: "https://app.example",
   SESSION_SECRET: "test-session-secret-that-is-at-least-32-bytes"
 };
@@ -21,7 +20,7 @@ describe("Bun environment", () => {
 
   test("applies the wrangler.jsonc defaults and leaves secrets unset", () => {
     const { variables, options } = readBunEnvironment(REQUIRED);
-    expect(variables).toEqual({ ...REQUIRED, EMAIL_DRIVER: "none", SES_REGION: "", SES_FROM: "", TURNSTILE_SITE_KEY: "" });
+    expect(variables).toEqual({ ...REQUIRED, EMAIL_DRIVER: "none", EMAIL_FROM: "", SES_REGION: "", TURNSTILE_SITE_KEY: "" });
     expect(options).toEqual({
       port: 3000,
       listenHost: "127.0.0.1",
@@ -59,7 +58,7 @@ describe("build origin", () => {
   });
 
   test("refuses another origin in production and ignores it locally", async () => {
-    const { variables } = readBunEnvironment({ ...REQUIRED, APP_HOST: "other.example", APP_ORIGIN: "https://other.example" });
+    const { variables } = readBunEnvironment({ ...REQUIRED, APP_ORIGIN: "https://other.example" });
     await expect(assertBuildOrigin(variables, staticDir)).rejects.toThrow("APP_ORIGIN differs");
     await assertBuildOrigin({ ...variables, ENVIRONMENT: "local" }, staticDir);
   });

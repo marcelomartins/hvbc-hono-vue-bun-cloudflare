@@ -26,6 +26,7 @@ function statement(sqlite: SQLiteDatabase, sql: string, values: BindValue[]): Pr
   return {
     bind: (...next: BindValue[]) => statement(sqlite, sql, checkedValues(next)),
     first: async <T>() => (sqlite.query(sql).get(...values) as T | null | undefined) ?? null,
+    all: async <T>() => ({ results: sqlite.query(sql).all(...values) as T[] }),
     run: async () => sqlite.query(sql).run(...values)
   };
 }

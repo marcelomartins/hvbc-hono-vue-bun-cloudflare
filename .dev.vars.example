@@ -1,6 +1,5 @@
 # Local configuration for both `bun run dev` (workerd) and `bun run start` (Bun).
 ENVIRONMENT=local
-APP_HOST=localhost
 APP_ORIGIN=http://localhost
 SESSION_SECRET=
 
@@ -10,11 +9,13 @@ SESSION_SECRET=
 # LISTEN_HOST=127.0.0.1
 # DATABASE_PATH=.data/app.sqlite
 
-# Optional email delivery. Use "console" locally to print messages in the terminal,
-# "ses" to deliver through Amazon SES, or "none" to disable it.
+# Optional delivery for the email a project sends; the framework sends none. "console"
+# prints messages in the terminal, "ses" delivers through Amazon SES, "cloudflare"
+# needs the EMAIL binding in wrangler.jsonc and so works only on Workers, and "none"
+# drops them. Both providers need EMAIL_FROM, an address or "Name <address>".
 EMAIL_DRIVER=console
+EMAIL_FROM=
 SES_REGION=
-SES_FROM=
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
 

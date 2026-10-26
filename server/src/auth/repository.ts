@@ -65,11 +65,12 @@ export async function bumpSessionVersion(database: Database, user: UserRow): Pro
     .run();
 }
 
-/** Returns null when another write changed the user after it was read. */
+/** Returns null when the profile is no longer at the version the client edited. */
 export function updateUserName(
   database: Database,
   user: UserRow,
-  name: string
+  name: string,
+  expectedVersion: number
 ): Promise<UserRow | null> {
   return database
     .prepare(
@@ -77,14 +78,15 @@ export function updateUserName(
        WHERE id = ? AND version = ?
        RETURNING ${USER_COLUMNS}`
     )
-    .bind(name, nowIso(), user.id, user.version)
+    .bind(name, nowIso(), user.id, expectedVersion)
     .first<UserRow>();
 }
 
 /**
- * Conditioned on the password hash instead of the row version, so a concurrent
- * profile update can neither cancel nor block a password change. Returns null
- * when another password change won the race.
+ * Conditioned on the password hash instead of the profile version, so a concurrent
+ * profile update can neither cancel nor block a password change. It leaves the
+ * profile version alone, so a profile form opened before the change can still be
+ * saved. Returns null when another password change won the race.
  */
 export function updateUserPassword(
   database: Database,
@@ -94,8 +96,7 @@ export function updateUserPassword(
   return database
     .prepare(
       `UPDATE users SET password_hash = ?,
-         session_version = session_version + 1,
-         version = version + 1, updated_at = ?
+         session_version = session_version + 1, updated_at = ?
        WHERE id = ? AND password_hash = ?
        RETURNING ${USER_COLUMNS}`
     )

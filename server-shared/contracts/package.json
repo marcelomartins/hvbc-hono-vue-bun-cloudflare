@@ -8,6 +8,7 @@
     "./api": "./src/types/api.ts",
     "./uuid": "./src/primitives/uuid.ts",
     "./auth": "./src/schemas/auth.ts",
+    "./limits": "./src/schemas/limits.ts",
     "./security-headers": "./src/http/security-headers.ts",
     "./static-assets": "./src/http/static-assets.ts"
   },

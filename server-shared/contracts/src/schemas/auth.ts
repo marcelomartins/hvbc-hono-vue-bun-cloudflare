@@ -1,7 +1,11 @@
 import { z } from "zod";
 
-export const PASSWORD_MIN_CODE_POINTS = 8;
-export const PASSWORD_MAX_CODE_POINTS = 128;
+import {
+  PASSWORD_MAX_CODE_POINTS,
+  PASSWORD_MIN_CODE_POINTS,
+  PERSON_NAME_MAX_CODE_POINTS,
+  PERSON_NAME_MIN_CODE_POINTS
+} from "./limits";
 
 const codePointLength = (value: string): number => Array.from(value).length;
 
@@ -14,12 +18,14 @@ export const personNameSchema = z
   .transform((value) => value.trim())
   .pipe(
     z.string().refine(
-      (value) => codePointLength(value) >= 2 && codePointLength(value) <= 120,
+      (value) =>
+        codePointLength(value) >= PERSON_NAME_MIN_CODE_POINTS &&
+        codePointLength(value) <= PERSON_NAME_MAX_CODE_POINTS,
       "name_length"
     )
   );
 
-const emailAddress = z.string().min(3).max(254).email().refine(
+const emailAddress = z.email().min(3).max(254).refine(
   (value) => (value.split("@", 1)[0]?.length ?? 65) <= 64,
   "email_local_part"
 );
@@ -41,7 +47,7 @@ export const existingPasswordSchema = z.string().refine(
   "password_length"
 );
 
-// Present only when Turnstile is enabled; the Worker decides whether it is required.
+// Present only when Turnstile is enabled; the server decides whether it is required.
 const turnstileToken = z.string().min(1).max(4096).optional();
 
 export const registerSchema = z
@@ -61,7 +67,10 @@ export const loginSchema = z
   })
   .strict();
 
-export const profileUpdateSchema = z.object({ name: personNameSchema }).strict();
+// The version the client edited, so a save from a stale form is rejected.
+export const profileUpdateSchema = z
+  .object({ name: personNameSchema, version: z.number().int().positive() })
+  .strict();
 
 export const passwordChangeSchema = z
   .object({ currentPassword: existingPasswordSchema, newPassword: password })

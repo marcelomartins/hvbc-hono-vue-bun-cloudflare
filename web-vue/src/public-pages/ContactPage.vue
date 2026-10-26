@@ -2,7 +2,7 @@
 import { usePublicHead } from "./head";
 
 usePublicHead({
-  title: "Contact — HVBC",
+  title: "Contact - HVBC",
   description: "Example contact page of HVBC, prerendered at build time."
 });
 </script>

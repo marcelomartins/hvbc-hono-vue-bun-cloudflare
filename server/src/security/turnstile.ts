@@ -1,4 +1,4 @@
-import { SECURITY, isTurnstileEnabled, type AppEnv } from "../config";
+import { SECURITY, appHost, isTurnstileEnabled, type AppEnv } from "../config";
 import { structuredLog } from "../observability/log";
 
 const SITEVERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
@@ -60,7 +60,7 @@ export async function verifyTurnstile(
     });
     return false;
   }
-  if (env.ENVIRONMENT !== "local" && payload.hostname !== env.APP_HOST) {
+  if (env.ENVIRONMENT !== "local" && payload.hostname !== appHost(env)) {
     structuredLog("warn", { event: "turnstile_rejected", requestId, action, reason: "hostname_mismatch" });
     return false;
   }

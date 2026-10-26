@@ -4,13 +4,13 @@ import { usePublicHead } from "./head";
 usePublicHead({
   title: "HVBC",
   description:
-    "Full-stack starter with Bun, Hono, Vue, and Cloudflare: prerendered public pages and a SPA protected by the Worker."
+    "HVBC: Hono + Vue to build, Bun or Cloudflare to run. A full-stack TypeScript framework with auth, SSG, and an API in one app."
 });
 </script>
 
 <template>
   <section class="hero">
-    <p class="eyebrow">Full-stack starter</p>
+    <p class="eyebrow">Full-stack TypeScript framework</p>
     <h1 class="display">
       Build your product,<br />
       <span class="display-muted">not the plumbing.</span>
@@ -39,7 +39,7 @@ usePublicHead({
     <div class="feature">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M14 4l-4 16" /></svg>
       <h2>Shared contracts</h2>
-      <p>One set of routes, types, and schemas for client and server.</p>
+      <p>One route registry and one set of API types for client and server.</p>
     </div>
   </section>
 </template>

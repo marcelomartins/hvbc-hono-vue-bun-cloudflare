@@ -3,7 +3,7 @@ import { afterEach, describe, expect, spyOn, test } from "bun:test";
 import type { AppEnv } from "../config";
 import { createSiteverifyRequest, verifyTurnstile } from "./turnstile";
 
-const disabled = { ENVIRONMENT: "production", APP_HOST: "app.example" } as AppEnv;
+const disabled = { ENVIRONMENT: "production", APP_ORIGIN: "https://app.example" } as AppEnv;
 const enabled = { ...disabled, TURNSTILE_SECRET_KEY: "secret-value" } as AppEnv;
 
 function siteverifyResponse(body: unknown, status = 200): Response {

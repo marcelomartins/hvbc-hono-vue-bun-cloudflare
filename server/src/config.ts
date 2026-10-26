@@ -1,11 +1,14 @@
 import {
   PASSWORD_MAX_CODE_POINTS,
   PASSWORD_MIN_CODE_POINTS
-} from "@hvbc/contracts/auth";
+} from "@hvbc/contracts/limits";
 
-import type { AssetFetcher, Database, RateLimiter } from "./runtime/types";
+import type { AssetFetcher, Database, EmailBinding, RateLimiter } from "./runtime/types";
 
 export const SECURITY = {
+  // The most PBKDF2 iterations Workers allows, and below the 600,000 OWASP suggests
+  // for PBKDF2-SHA256. Each hash records its count, so the Bun target could raise it
+  // for new hashes without invalidating the existing ones.
   passwordIterations: 100_000,
   passwordSaltBytes: 16,
   passwordHashBytes: 32,
@@ -26,9 +29,19 @@ const ENVIRONMENTS = ["local", "production"] as const;
 
 type Environment = (typeof ENVIRONMENTS)[number];
 
-const EMAIL_DRIVERS = ["none", "console", "ses"] as const;
+const EMAIL_DRIVERS = ["none", "console", "cloudflare", "ses"] as const;
 
 type EmailDriver = (typeof EMAIL_DRIVERS)[number];
+
+// An address, or a display name followed by the address in angle brackets.
+const EMAIL_FROM_PATTERN = /^(?:([^<>"]*[^<>"\s])\s*<([^\s<>@]+@[^\s<>@]+)>|([^\s<>@]+@[^\s<>@]+))$/u;
+
+const AWS_REGION_PATTERN = /^[a-z]{2}(?:-[a-z]+)+-\d+$/u;
+
+export interface EmailSender {
+  email: string;
+  name?: string;
+}
 
 export interface RuntimeSecrets {
   SESSION_SECRET: string;
@@ -42,14 +55,14 @@ export interface RuntimeEnv extends RuntimeSecrets {
   DB: Database;
   ASSETS: AssetFetcher;
   ENVIRONMENT: string;
-  APP_HOST: string;
   APP_ORIGIN: string;
   ALLOW_INSECURE_HTTP?: string;
   AUTH_RATE_LIMIT?: string;
   AUTH_RATE_LIMITER?: RateLimiter;
   EMAIL_DRIVER: string;
+  EMAIL_FROM: string;
+  EMAIL?: EmailBinding;
   SES_REGION: string;
-  SES_FROM: string;
   TURNSTILE_SITE_KEY: string;
 }
 
@@ -76,6 +89,19 @@ export function isTurnstileEnabled(env: AppEnv): boolean {
   return isConfigured(env.TURNSTILE_SECRET_KEY);
 }
 
+export function appHost(env: Pick<RuntimeVariables, "APP_ORIGIN">): string {
+  return new URL(env.APP_ORIGIN).hostname;
+}
+
+/** The sender in EMAIL_FROM, or null when it is not an address or "Name <address>". */
+export function emailSender(env: Pick<RuntimeVariables, "EMAIL_FROM">): EmailSender | null {
+  const match = EMAIL_FROM_PATTERN.exec((env.EMAIL_FROM ?? "").trim());
+  if (match === null) return null;
+  const [, name, address, bareAddress] = match;
+  if (bareAddress !== undefined) return { email: bareAddress };
+  return name === undefined || address === undefined ? null : { email: address, name: name.trim() };
+}
+
 export function isAuthRateLimitEnabled(env: Pick<RuntimeVariables, "AUTH_RATE_LIMIT">): boolean {
   return env.AUTH_RATE_LIMIT === "true";
 }
@@ -97,9 +123,8 @@ export function assertRuntimeConfiguration(env: RuntimeVariables): void {
       "SESSION_SECRET must contain at least 32 UTF-8 bytes (set it in .dev.vars locally or with wrangler secret in production)"
     );
   }
-  const origin = new URL(env.APP_ORIGIN);
-  if (origin.origin !== env.APP_ORIGIN || origin.hostname !== env.APP_HOST) {
-    throw new Error("APP_ORIGIN and APP_HOST must identify the same origin");
+  if (URL.parse(env.APP_ORIGIN)?.origin !== env.APP_ORIGIN) {
+    throw new Error("APP_ORIGIN must be a bare origin, such as https://app.example.com");
   }
   if (isInsecureHttp(env) && env.ALLOW_INSECURE_HTTP !== "true") {
     throw new Error(
@@ -115,9 +140,16 @@ export function assertRuntimeConfiguration(env: RuntimeVariables): void {
   if (env.EMAIL_DRIVER === "console" && env.ENVIRONMENT !== "local") {
     throw new Error("EMAIL_DRIVER=console prints message bodies and is only allowed when ENVIRONMENT=local");
   }
+  if ((env.EMAIL_DRIVER === "cloudflare" || env.EMAIL_DRIVER === "ses") && emailSender(env) === null) {
+    throw new Error(`EMAIL_DRIVER=${env.EMAIL_DRIVER} requires EMAIL_FROM as an address or "Name <address>"`);
+  }
+  if (env.EMAIL_DRIVER === "cloudflare" && env.EMAIL === undefined) {
+    throw new Error("EMAIL_DRIVER=cloudflare requires the EMAIL binding, which this runtime does not provide");
+  }
   if (env.EMAIL_DRIVER === "ses") {
-    if (!isConfigured(env.SES_REGION) || !isConfigured(env.SES_FROM)) {
-      throw new Error("EMAIL_DRIVER=ses requires SES_REGION and SES_FROM");
+    // The region becomes part of the host the signed request goes to.
+    if (!AWS_REGION_PATTERN.test(env.SES_REGION ?? "")) {
+      throw new Error("EMAIL_DRIVER=ses requires SES_REGION as an AWS region, such as us-east-1");
     }
     if (!isConfigured(env.AWS_ACCESS_KEY_ID) || !isConfigured(env.AWS_SECRET_ACCESS_KEY)) {
       throw new Error("EMAIL_DRIVER=ses requires AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY");

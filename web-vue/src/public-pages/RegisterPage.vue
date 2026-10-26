@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import {
+  PASSWORD_MAX_CODE_POINTS,
+  PASSWORD_MIN_CODE_POINTS,
+  PERSON_NAME_MAX_CODE_POINTS,
+  PERSON_NAME_MIN_CODE_POINTS
+} from "@hvbc/contracts/limits";
 import { PROTECTED_HOME_ROUTE } from "@hvbc/contracts/routes";
 import { ref, useTemplateRef } from "vue";
 import { apiFetch } from "../api/client";
@@ -7,7 +13,7 @@ import TurnstileWidget from "./components/TurnstileWidget.vue";
 import { usePublicHead } from "./head";
 
 usePublicHead({
-  title: "Create account — HVBC",
+  title: "Create account - HVBC",
   description: "Create your HVBC account to access the protected area."
 });
 
@@ -50,7 +56,15 @@ async function submit(): Promise<void> {
     <form class="form" @submit.prevent="submit">
       <label class="field">
         <span>Name</span>
-        <input v-model="name" type="text" name="name" autocomplete="name" required minlength="2" />
+        <input
+          v-model="name"
+          type="text"
+          name="name"
+          autocomplete="name"
+          required
+          :minlength="PERSON_NAME_MIN_CODE_POINTS"
+          :maxlength="PERSON_NAME_MAX_CODE_POINTS"
+        />
       </label>
 
       <label class="field">
@@ -66,7 +80,8 @@ async function submit(): Promise<void> {
           name="password"
           autocomplete="new-password"
           required
-          minlength="8"
+          :minlength="PASSWORD_MIN_CODE_POINTS"
+          :maxlength="PASSWORD_MAX_CODE_POINTS"
         />
       </label>
 

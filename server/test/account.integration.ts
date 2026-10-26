@@ -2,7 +2,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import { findUserByEmail, updateUserName, type UserRow } from "../src/auth/repository";
-import { changePassword, updateProfile } from "../src/auth/service";
+import { changePassword } from "../src/auth/service";
 import type { AppEnv, RuntimeSecrets } from "../src/config";
 import { apiRequest, registerUser, sessionCookie, TEST_PASSWORD } from "./helpers";
 
@@ -21,7 +21,7 @@ describe("account management", () => {
     const response = await apiRequest("/api/v1/me", {
       method: "PUT",
       cookie,
-      body: { name: "  Updated Name " }
+      body: { name: "  Updated Name ", version: 1 }
     });
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({ name: "Updated Name", version: 2 });
@@ -66,7 +66,9 @@ describe("account management", () => {
     expect(changed.status).toBe(204);
     const refreshed = sessionCookie(changed);
 
-    expect((await apiRequest("/api/v1/me", { cookie: refreshed })).status).toBe(200);
+    const afterChange = await apiRequest("/api/v1/me", { cookie: refreshed });
+    expect(afterChange.status).toBe(200);
+    expect(await afterChange.json()).toMatchObject({ version: 1 });
     expect((await apiRequest("/api/v1/me", { cookie: original })).status).toBe(401);
     expect((await apiRequest("/api/v1/me", { cookie: other })).status).toBe(401);
 
@@ -89,24 +91,22 @@ describe("account management", () => {
     expect(await response.json()).toMatchObject({ error: { code: "INVALID_REQUEST" } });
   });
 
-  it("rejects a profile update based on a stale read", async () => {
-    const email = "stale-profile@example.com";
-    await registerUser(email);
-    const stale = await storedUser(email);
-    await updateUserName(env.DB, stale, "First Writer");
+  it("rejects a profile update from a form edited at an older version", async () => {
+    const { cookie } = await registerUser("stale-profile@example.com", "Original Name");
+    const first = await apiRequest("/api/v1/me", { method: "PUT", cookie, body: { name: "First Tab", version: 1 } });
+    expect(first.status).toBe(200);
 
-    await expect(updateProfile(appEnv, stale, { name: "Second Writer" }, "test")).rejects.toMatchObject({
-      status: 409,
-      code: "CONFLICT"
-    });
-    expect((await storedUser(email)).name).toBe("First Writer");
+    const second = await apiRequest("/api/v1/me", { method: "PUT", cookie, body: { name: "Second Tab", version: 1 } });
+    expect(second.status).toBe(409);
+    expect(await second.json()).toMatchObject({ error: { code: "CONFLICT" } });
+    expect(await (await apiRequest("/api/v1/me", { cookie })).json()).toMatchObject({ name: "First Tab", version: 2 });
   });
 
   it("keeps a password change when the profile changed after the session was read", async () => {
     const email = "renamed-meanwhile@example.com";
     const { cookie } = await registerUser(email);
     const stale = await storedUser(email);
-    await updateUserName(env.DB, stale, "Renamed Meanwhile");
+    await updateUserName(env.DB, stale, "Renamed Meanwhile", stale.version);
 
     await changePassword(
       appEnv,

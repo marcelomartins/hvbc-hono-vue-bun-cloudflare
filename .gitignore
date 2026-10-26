@@ -30,7 +30,3 @@ logs/
 .idea/
 *.iml
 .DS_Store
-.agents
-
-plans/
-

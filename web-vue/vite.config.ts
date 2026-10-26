@@ -10,8 +10,8 @@ import { removeDuplicateAssetTags } from "./scripts/head-assets.ts";
 const rootWranglerPath = fileURLToPath(new URL("../wrangler.jsonc", import.meta.url));
 const rootStatePath = fileURLToPath(new URL("../.wrangler/state", import.meta.url));
 
-export default defineConfig(({ command, isPreview, isSsrBuild, mode }) => {
-  const unifiedCloudflareDev = command === "serve" && isPreview !== true && mode === "cloudflare";
+export default defineConfig(({ command, isPreview, isSsrBuild }) => {
+  const unifiedCloudflareDev = command === "serve" && isPreview !== true;
   return {
     plugins: [
       ...(unifiedCloudflareDev

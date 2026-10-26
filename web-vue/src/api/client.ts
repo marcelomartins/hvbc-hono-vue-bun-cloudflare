@@ -37,13 +37,17 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   const response = await fetch(path, request);
   const body = await readBody(response);
   if (!response.ok) {
-    if (response.status === 401 && options.authenticated !== false && typeof window !== "undefined") {
+    if (!isApiErrorBody(body)) throw new ApiError(response.status, "UNEXPECTED_RESPONSE");
+    // Only a missing or revoked session leads to the login page; other 401 answers,
+    // such as a wrong current password, belong to the form that sent the request.
+    if (
+      body.error.code === "AUTHENTICATION_REQUIRED" &&
+      options.authenticated !== false &&
+      typeof window !== "undefined"
+    ) {
       window.location.assign(loginPath(`${window.location.pathname}${window.location.search}`));
     }
-    if (isApiErrorBody(body)) {
-      throw new ApiError(response.status, body.error.code, body.error.requestId, body.error.details ?? null);
-    }
-    throw new ApiError(response.status, "UNEXPECTED_RESPONSE");
+    throw new ApiError(response.status, body.error.code, body.error.requestId, body.error.details ?? null);
   }
   return body as T;
 }

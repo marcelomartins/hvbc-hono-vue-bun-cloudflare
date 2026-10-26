@@ -2,8 +2,6 @@ import type { UserDto } from "@hvbc/contracts/api";
 import { normalizeEmail, type Login, type PasswordChange, type ProfileUpdate, type Register } from "@hvbc/contracts/auth";
 
 import type { AppEnv } from "../config";
-import { welcomeEmail } from "../email/messages";
-import { sendEmail } from "../email/sender";
 import { conflict, unauthorized } from "../http/errors";
 import { structuredLog } from "../observability/log";
 import { consumePasswordWork, hashPassword, verifyPassword } from "../security/password";
@@ -27,15 +25,6 @@ export function toUserDto(user: UserRow): UserDto {
   };
 }
 
-async function notifyWelcome(env: AppEnv, user: UserRow, requestId: string): Promise<void> {
-  try {
-    await sendEmail(env, welcomeEmail(user.email, user.name, env.APP_ORIGIN));
-  } catch {
-    // Delivery is best-effort: a provider outage must not fail the registration.
-    structuredLog("error", { event: "welcome_email_failed", requestId, userUuid: user.uuid });
-  }
-}
-
 export async function register(
   env: AppEnv,
   input: Register,
@@ -55,7 +44,6 @@ export async function register(
   });
   if (user === null) throw conflict("EMAIL_ALREADY_REGISTERED");
   structuredLog("info", { event: "auth_register", requestId, userUuid: user.uuid });
-  await notifyWelcome(env, user, requestId);
   return { token: await createSessionToken(env, user.uuid, user.session_version), user: toUserDto(user) };
 }
 
@@ -86,7 +74,7 @@ export async function updateProfile(
   input: ProfileUpdate,
   requestId: string
 ): Promise<UserDto> {
-  const updated = await updateUserName(env.DB, user, input.name);
+  const updated = await updateUserName(env.DB, user, input.name, input.version);
   if (updated === null) throw conflict();
   structuredLog("info", { event: "profile_updated", requestId, userUuid: user.uuid });
   return toUserDto(updated);

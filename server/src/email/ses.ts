@@ -1,10 +1,20 @@
-import { SECURITY, type AppEnv } from "../config";
+import { SECURITY, emailSender, type AppEnv, type EmailSender } from "../config";
 import { hmacBytes, sha256Hex } from "../security/crypto";
-import { bytesToHex, utf8 } from "../security/encoding";
+import { base64Encode, bytesToHex, utf8 } from "../security/encoding";
 import type { EmailMessage } from "./sender";
 
 const SERVICE = "ses";
 const PATH = "/v2/email/outbound-emails";
+
+// SES takes an ASCII display name as a quoted string, and any other one only as an
+// RFC 2047 encoded word.
+function sesAddress(sender: EmailSender): string {
+  if (sender.name === undefined) return sender.email;
+  const name = /^[\x20-\x7e]*$/u.test(sender.name)
+    ? `"${sender.name.replaceAll("\\", "\\\\")}"`
+    : `=?UTF-8?B?${base64Encode(utf8(sender.name))}?=`;
+  return `${name} <${sender.email}>`;
+}
 
 async function signingKey(
   secret: string,
@@ -19,7 +29,7 @@ async function signingKey(
 
 export interface SesRequestInput {
   region: string;
-  from: string;
+  from: EmailSender;
   accessKeyId: string;
   secretAccessKey: string;
   message: EmailMessage;
@@ -29,7 +39,7 @@ export interface SesRequestInput {
 export async function createSesRequest(input: SesRequestInput): Promise<Request> {
   const host = `email.${input.region}.amazonaws.com`;
   const body = JSON.stringify({
-    FromEmailAddress: input.from,
+    FromEmailAddress: sesAddress(input.from),
     Destination: { ToAddresses: [input.message.to] },
     Content: {
       Simple: {
@@ -66,9 +76,12 @@ export async function createSesRequest(input: SesRequestInput): Promise<Request>
 }
 
 export async function sendWithSes(env: AppEnv, message: EmailMessage): Promise<void> {
+  const sender = emailSender(env);
+  // assertRuntimeConfiguration already rejects this; failing here keeps the driver closed regardless.
+  if (sender === null) throw new Error("EMAIL_DRIVER=ses is not configured");
   const request = await createSesRequest({
     region: env.SES_REGION,
-    from: env.SES_FROM,
+    from: sender,
     accessKeyId: env.AWS_ACCESS_KEY_ID ?? "",
     secretAccessKey: env.AWS_SECRET_ACCESS_KEY ?? "",
     message
@@ -76,5 +89,9 @@ export async function sendWithSes(env: AppEnv, message: EmailMessage): Promise<v
   const response = await fetch(request, {
     signal: AbortSignal.timeout(SECURITY.outboundRequestTimeoutMs)
   });
-  if (!response.ok) throw new Error(`SES request failed with status ${response.status}`);
+  if (!response.ok) {
+    // The error type, such as MessageRejected, names the cause without any address.
+    const errorType = response.headers.get("x-amzn-errortype")?.split(":", 1)[0];
+    throw new Error(`SES request failed with status ${response.status}${errorType ? ` (${errorType})` : ""}`);
+  }
 }

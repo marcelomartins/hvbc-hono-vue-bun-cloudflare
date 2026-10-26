@@ -5,7 +5,6 @@ import { base64UrlDecode, base64UrlEncode, timingSafeEqual, utf8 } from "./encod
 export interface SessionClaims {
   sub: string;
   version: number;
-  authenticatedAt: number;
   exp: number;
 }
 
@@ -15,7 +14,6 @@ function parseClaims(value: unknown): SessionClaims | null {
   if (
     typeof claims.sub !== "string" ||
     !Number.isSafeInteger(claims.version) ||
-    !Number.isSafeInteger(claims.authenticatedAt) ||
     !Number.isSafeInteger(claims.exp)
   ) return null;
   return claims as SessionClaims;
@@ -30,7 +28,6 @@ export async function createSessionToken(
   const claims: SessionClaims = {
     sub: userUuid,
     version: sessionVersion,
-    authenticatedAt: Math.floor(now / 1000),
     exp: Math.floor(now / 1000) + SECURITY.sessionDays * 86_400
   };
   const payload = base64UrlEncode(utf8(JSON.stringify(claims)));

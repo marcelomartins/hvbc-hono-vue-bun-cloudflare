@@ -17,6 +17,14 @@ describe("SQLite adapter", () => {
     expect(await database.prepare("SELECT * FROM items WHERE name = ?").bind("missing").first()).toBeNull();
   });
 
+  test("returns every matching row in results, like D1", async () => {
+    const database = freshDatabase();
+    for (const name of ["a", "b"]) await database.prepare("INSERT INTO items (name) VALUES (?)").bind(name).run();
+    const select = "SELECT name FROM items WHERE version = ? ORDER BY name";
+    expect(await database.prepare(select).bind(1).all()).toEqual({ results: [{ name: "a" }, { name: "b" }] });
+    expect(await database.prepare(select).bind(2).all()).toEqual({ results: [] });
+  });
+
   test("returns no row from ON CONFLICT DO NOTHING RETURNING on a conflict", async () => {
     const database = freshDatabase();
     const insert = "INSERT INTO items (name) VALUES (?) ON CONFLICT (name) DO NOTHING RETURNING id, name";

@@ -10,7 +10,6 @@ import type { AppBindings } from "./types";
 const localEnv = { ENVIRONMENT: "local" } as AppEnv;
 const productionEnv = {
   ENVIRONMENT: "production",
-  APP_HOST: "app.example",
   APP_ORIGIN: "https://app.example"
 } as AppEnv;
 
@@ -33,6 +32,8 @@ describe("request pipeline", () => {
   app.use("*", browserSecurityHeaders);
   app.use("*", requestPipeline);
   app.post("/auth/login", (context) => context.body(null, 204));
+  app.get("/health", (context) => context.json({ status: "ok" }));
+  app.get("/pricing", (context) => context.text("page"));
   app.onError((error, context) => errorResponse(error, context.get("requestId")));
 
   afterEach(() => {
@@ -62,12 +63,22 @@ describe("request pipeline", () => {
     const response = await app.request(
       `${origin}/auth/login`,
       { method: "POST", headers: { origin } },
-      { ...configuredEnv, APP_HOST: "192.168.0.10", APP_ORIGIN: origin, ALLOW_INSECURE_HTTP: "true" } as AppEnv
+      { ...configuredEnv, APP_ORIGIN: origin, ALLOW_INSECURE_HTTP: "true" } as AppEnv
     );
     info.mockRestore();
 
     expect(response.status).toBe(204);
     expect(response.headers.get("strict-transport-security")).toBeNull();
+  });
+
+  test("keeps every backend route out of shared caches", async () => {
+    const info = spyOn(console, "info").mockImplementation(() => undefined);
+    const health = await app.request("https://app.example/health", {}, configuredEnv);
+    const page = await app.request("https://app.example/pricing", {}, configuredEnv);
+    info.mockRestore();
+
+    expect(health.headers.get("cache-control")).toBe("private, no-store");
+    expect(page.headers.get("cache-control")).toBeNull();
   });
 });
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PASSWORD_MAX_CODE_POINTS } from "@hvbc/contracts/limits";
 import { PROTECTED_HOME_ROUTE, returnPathFromQuery } from "@hvbc/contracts/routes";
 import { ref, useTemplateRef } from "vue";
 import { apiFetch } from "../api/client";
@@ -7,7 +8,7 @@ import TurnstileWidget from "./components/TurnstileWidget.vue";
 import { usePublicHead } from "./head";
 
 usePublicHead({
-  title: "Sign in — HVBC",
+  title: "Sign in - HVBC",
   description: "Sign in to your HVBC account."
 });
 
@@ -59,6 +60,7 @@ async function submit(): Promise<void> {
           name="password"
           autocomplete="current-password"
           required
+          :maxlength="PASSWORD_MAX_CODE_POINTS"
         />
       </label>
 

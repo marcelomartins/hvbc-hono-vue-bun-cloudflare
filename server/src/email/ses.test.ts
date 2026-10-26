@@ -4,12 +4,12 @@ import { createSesRequest } from "./ses";
 
 const input = {
   region: "us-east-1",
-  from: "App <login@example.com>",
+  from: { email: "login@example.com", name: "App" },
   accessKeyId: "AKIAIOSFODNN7EXAMPLE",
   secretAccessKey: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
   message: {
     to: "user@example.com",
-    subject: "Welcome — your account is ready",
+    subject: "Welcome - your account is ready",
     text: "Welcome",
     html: "<p>Welcome</p>"
   },
@@ -48,12 +48,19 @@ describe("createSesRequest", () => {
     expect(original.headers.get("authorization")).not.toBe(modified.headers.get("authorization"));
   });
 
+  test("encodes a display name SES only takes as an encoded word", async () => {
+    const accented = await createSesRequest({ ...input, from: { email: "login@example.com", name: "Aplicação" } });
+    const bare = await createSesRequest({ ...input, from: { email: "login@example.com" } });
+    expect(await accented.json()).toMatchObject({ FromEmailAddress: "=?UTF-8?B?QXBsaWNhw6fDo28=?= <login@example.com>" });
+    expect(await bare.json()).toMatchObject({ FromEmailAddress: "login@example.com" });
+  });
+
   test("sends the message as a simple SES payload", async () => {
     const request = await createSesRequest(input);
     expect(await request.json()).toMatchObject({
-      FromEmailAddress: "App <login@example.com>",
+      FromEmailAddress: '"App" <login@example.com>',
       Destination: { ToAddresses: ["user@example.com"] },
-      Content: { Simple: { Subject: { Data: "Welcome — your account is ready" } } }
+      Content: { Simple: { Subject: { Data: "Welcome - your account is ready" } } }
     });
   });
 });

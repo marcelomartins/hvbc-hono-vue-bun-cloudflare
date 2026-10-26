@@ -1,10 +1,48 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
 
 import { errorMessage } from "../i18n/messages";
+import { apiFetch } from "./client";
 import { isApiErrorBody } from "./errors";
 
+describe("apiFetch", () => {
+  const assign = mock((_url: string) => undefined);
+
+  beforeEach(() => {
+    assign.mockClear();
+    globalThis.window = {
+      location: { assign, pathname: "/app/settings", search: "" }
+    } as unknown as Window & typeof globalThis;
+  });
+
+  afterEach(() => {
+    Reflect.deleteProperty(globalThis, "window");
+    spyOn(globalThis, "fetch").mockRestore();
+  });
+
+  function respondWith(status: number, code: string): void {
+    spyOn(globalThis, "fetch").mockResolvedValue(
+      Response.json({ error: { code, requestId: "req-1" } }, { status })
+    );
+  }
+
+  test("sends the visitor to the login page when the session is gone", async () => {
+    respondWith(401, "AUTHENTICATION_REQUIRED");
+    await expect(apiFetch("/api/v1/me")).rejects.toMatchObject({ status: 401, code: "AUTHENTICATION_REQUIRED" });
+    expect(assign).toHaveBeenCalledWith("/login?next=%2Fapp%2Fsettings");
+  });
+
+  test("keeps the visitor on the page for any other 401 answer", async () => {
+    respondWith(401, "CURRENT_PASSWORD_INVALID");
+    await expect(apiFetch("/api/v1/me/password", { method: "PUT", body: {} })).rejects.toMatchObject({
+      status: 401,
+      code: "CURRENT_PASSWORD_INVALID"
+    });
+    expect(assign).not.toHaveBeenCalled();
+  });
+});
+
 describe("isApiErrorBody", () => {
-  test("accepts the Worker error contract", () => {
+  test("accepts the server error contract", () => {
     expect(
       isApiErrorBody({ error: { code: "INVALID_REQUEST", requestId: "01890a5d-ac96-774b-bcce-b302099a8057" } })
     ).toBe(true);

@@ -4,7 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev --config ../wrangler.jsonc --persist-to ../.wrangler/state",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test:integration": "vitest run --config vitest.config.ts"
   },
@@ -14,9 +13,9 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@cloudflare/vitest-pool-workers": "0.23.0",
+    "@cloudflare/vitest-plugin": "^1.4.8",
     "@types/bun": "^1.4.3",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.12"
   }
 }

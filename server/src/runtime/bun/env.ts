@@ -37,12 +37,11 @@ function optional(source: Source, name: string, fallback: string): string {
 export function readBunEnvironment(source: Source): { variables: RuntimeVariables; options: BunServerOptions } {
   const variables: RuntimeVariables = {
     ENVIRONMENT: required(source, "ENVIRONMENT"),
-    APP_HOST: required(source, "APP_HOST"),
     APP_ORIGIN: required(source, "APP_ORIGIN"),
     SESSION_SECRET: required(source, "SESSION_SECRET"),
     EMAIL_DRIVER: optional(source, "EMAIL_DRIVER", "none"),
+    EMAIL_FROM: optional(source, "EMAIL_FROM", ""),
     SES_REGION: optional(source, "SES_REGION", ""),
-    SES_FROM: optional(source, "SES_FROM", ""),
     TURNSTILE_SITE_KEY: optional(source, "TURNSTILE_SITE_KEY", "")
   };
   for (const name of UNSET_BY_DEFAULT) {

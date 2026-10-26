@@ -3,7 +3,7 @@ import ts from "typescript";
 
 /**
  * The production APP_ORIGIN used for absolute public URLs: the APP_ORIGIN environment
- * variable when set (a Docker build argument for the Bun target), otherwise
+ * variable when set (how a build for the Bun target sets it), otherwise
  * vars.APP_ORIGIN from wrangler.jsonc.
  */
 export function appOrigin(wranglerConfigPath: string): string {

@@ -8,7 +8,6 @@
 - Only add comments when they explain decisions, risks, or non-obvious invariants; comments that merely describe the code are not necessary.
 - There should be no unnecessary or unused code, and no unused files.
 - Do not create documentation files unless they are clearly requested.
-- Do not use Git to commit changes. Git may only be used to view or inspect changes.
 - Read [`README.md`](./README.md) for the stack, the layout, and how to run the project before changing code.
 
 ## Architecture Invariants
@@ -23,8 +22,8 @@
 - Security-sensitive account changes (the password today; email or session management if added) require the current password in the same request.
 - Keep the optional integrations optional: disabled by default, validated by `assertRuntimeConfiguration` only when enabled, failing closed once enabled, and never required by a default flow.
 - Validate the host and the `Origin` header in the server (`validateHostAndOrigin`) on every mutation. Frontend controls never replace authorization or validation in the server.
-- Keep `assertRuntimeConfiguration` rejecting missing or inconsistent `ENVIRONMENT`, `SESSION_SECRET`, `APP_HOST`, and `APP_ORIGIN`. Absence of secrets must never enable permissive fallbacks. The Bun server runs it before listening and exits on failure; in production it also refuses to start when `APP_ORIGIN` differs from the origin the frontend was built for.
-- An integration that needs something only one runtime provides (the `AUTH_RATE_LIMITER` binding today) receives it through the environment, and enabling it on a runtime without it must stop the server from starting.
+- Keep `assertRuntimeConfiguration` rejecting a missing or invalid `ENVIRONMENT`, `SESSION_SECRET`, or `APP_ORIGIN`; the host every request must name is derived from `APP_ORIGIN`. Absence of secrets must never enable permissive fallbacks. The Bun server runs it before listening and exits on failure; in production it also refuses to start when `APP_ORIGIN` differs from the origin the frontend was built for.
+- An integration that needs something only one runtime provides (the `AUTH_RATE_LIMITER` and `EMAIL` bindings today) receives it through the environment, and enabling it on a runtime without it must stop the server from starting.
 - On Bun, trust a proxy IP header only when `TRUSTED_PROXY_IP_HEADER` names it. Never read `x-forwarded-for` by default.
 - Use D1 prepared statements with `.bind()` for all external values. Never build SQL by concatenation.
 - Writes that can lose a race must detect it: a conditional `UPDATE` or `DELETE` uses `RETURNING` or checks the affected rows, and an insert under a `UNIQUE` constraint uses `ON CONFLICT`. A lost race returns `409`, never a false success or a `500`.
@@ -32,7 +31,7 @@
 - Read external bodies through `readJson` with the shared Zod schemas, never `request.json()` directly.
 - Keep API error codes stable and in English; user-facing messages belong in the frontend i18n map.
 - Do not log request/response bodies, passwords, tokens, cookies, codes, or raw email addresses. Use `structuredLog` with non-sensitive diagnostic fields and `sanitizedRequestPath`; it writes objects for Workers Logs and one JSON line per event on Bun.
-- Keep everything in English: technical names, code, tests, logs, documentation, and visible application text. Never hardcode a locale.
+- Write technical names, code, comments, tests, and logs in English. The interface language is the project's choice: the framework ships it in English, and a project may translate it. Never hardcode a locale when formatting dates or numbers.
 - Use Bun for package management, scripts, and unit tests. Do not switch the package manager or generate another lockfile.
 - Keep `bun audit` free of advisories. Every entry in the root `overrides` must be listed in [`CONTRIBUTING.md`](./CONTRIBUTING.md#dependencies) with why it exists and when to remove it.
 - Prefer Web APIs in shared code. Bun APIs, and the Node APIs Bun offers no alternative to, belong only in the Bun entry point and `server/src/runtime/bun/`. Elsewhere, Node-specific APIs require a concrete need.
@@ -40,13 +39,12 @@
 - Treat existing migrations as applied. Schema changes require a new additive migration, unless the user explicitly confirms the database can be recreated.
 - Do not put secrets in `wrangler.jsonc`, code, or committed files.
 - Declare every optional binding in `server/vitest.config.ts` and pin every optional variable in `server/scripts/boot-smoke.ts`, so neither depends on the developer's `.dev.vars` or `.env`.
-- Define browser security headers only in `server-shared/contracts/src/http/security-headers.ts`: the Worker applies them and the build generates `_headers` from them. Never hand-write `_headers`, `robots.txt`, or `sitemap.xml`; the build generates them.
+- Define browser security headers only in `server-shared/contracts/src/http/security-headers.ts`: the server applies them to its responses and the build generates `_headers` from them for the Cloudflare asset layer. Never hand-write `_headers`, `robots.txt`, or `sitemap.xml`; the build generates them.
 - `scripts/init.ts` holds the identifiers it rewrites, so it must keep excluding itself from the walk. Update it whenever a new framework identifier is introduced. When it finishes it removes itself, its `package.json` script, the `### Start a new project` README section, and this line, finding them by their exact text, so keep that text in step with the script.
-- Never pass secrets as Docker build arguments or bake them into the image; `APP_ORIGIN` is the only build argument.
 - Do not add remote bindings, deploy, use remote D1, set secrets, change DNS, or push images to a registry without explicit authorization.
 
 ## Verification
 
-Run `bun run verify` before completing shared changes; while iterating, run its individual steps from the `scripts` in [`package.json`](./package.json). Also confirm the Worker still bundles with `DB` and `ASSETS`, and that the Bun server bundles and boots (`bun run test:boot`, part of `verify`).
+Run `bun run verify` before completing shared changes; it also confirms that the Worker bundles with `DB` and `ASSETS` and that the Bun server bundles and boots. While iterating, run its individual steps from the `scripts` in [`package.json`](./package.json).
 
-Targeted tests are appropriate while iterating. All integration tests must use local workerd/Miniflare bindings. The Bun target is covered by unit tests of its adapters and by `bun run test:boot`; do not duplicate the integration suite for it. Do not start `bun run dev` or run browser tests unless the task explicitly requires runtime validation.
+Targeted tests are appropriate while iterating. All integration tests must use local workerd/Miniflare bindings. The Bun target is covered by unit tests of its adapters and by `bun run test:boot`; do not duplicate the integration suite for it. Do not start `bun run dev` unless the task explicitly requires runtime validation.

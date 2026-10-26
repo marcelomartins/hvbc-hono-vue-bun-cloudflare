@@ -2,7 +2,7 @@
   "name": "hvbc",
   "private": true,
   "type": "module",
-  "packageManager": "bun@1.3.4",
+  "packageManager": "bun@1.4.3",
   "workspaces": [
     "web-vue",
     "server",
@@ -10,9 +10,7 @@
   ],
   "scripts": {
     "init": "bun scripts/init.ts",
-    "dev": "bun server/scripts/ensure-dev-vars.ts && bun run db:migrate:local && bun run --cwd web-vue dev:cloudflare",
-    "dev:web": "bun run --cwd web-vue dev",
-    "dev:api": "bun server/scripts/ensure-dev-vars.ts && bun run --cwd server dev",
+    "dev": "bun server/scripts/ensure-dev-vars.ts && bun run db:migrate:local && bun run --cwd web-vue dev",
     "start": "bun server/scripts/ensure-dev-vars.ts && bun run build:web && bun --env-file=.dev.vars server/src/bun.ts",
     "build": "bun run build:web && bun run build:server && bun run worker:check",
     "build:web": "bun run --cwd web-vue build",
@@ -25,7 +23,6 @@
     "lint": "oxlint && knip",
     "types": "XDG_CONFIG_HOME=.wrangler-config WRANGLER_LOG_PATH=.logs/wrangler.log wrangler types server/worker-configuration.d.ts --strict-vars=false",
     "worker:check": "XDG_CONFIG_HOME=.wrangler-config WRANGLER_LOG_PATH=.logs/wrangler.log wrangler deploy --dry-run --outdir .wrangler/dry-run",
-    "worker:startup": "XDG_CONFIG_HOME=.wrangler-config WRANGLER_LOG_PATH=.logs/wrangler.log wrangler check startup",
     "db:migrate:local": "XDG_CONFIG_HOME=.wrangler-config WRANGLER_LOG_PATH=.logs/wrangler.log wrangler d1 migrations apply hvbc --local",
     "db:migrate:remote": "XDG_CONFIG_HOME=.wrangler-config WRANGLER_LOG_PATH=.logs/wrangler.log wrangler d1 migrations apply hvbc --remote",
     "deploy": "bun run build:web && XDG_CONFIG_HOME=.wrangler-config WRANGLER_LOG_PATH=.logs/wrangler.log wrangler deploy",
@@ -34,13 +31,12 @@
   "devDependencies": {
     "@types/bun": "^1.4.3",
     "@types/node": "26.6.5",
-    "knip": "6.41.0",
+    "knip": "6.43.0",
     "oxlint": "1.88.0",
     "typescript": "^6.0.3",
-    "wrangler": "^4.150.0"
+    "wrangler": "^4.153.0"
   },
   "overrides": {
-    "sharp": "0.35.5",
-    "undici": "7.29.1"
+    "undici": "7.30.1"
   }
 }

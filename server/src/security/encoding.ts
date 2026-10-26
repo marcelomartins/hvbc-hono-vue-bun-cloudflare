@@ -8,10 +8,14 @@ export function bytesToHex(bytes: Uint8Array): string {
   return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
 }
 
-export function base64UrlEncode(bytes: Uint8Array): string {
+export function base64Encode(bytes: Uint8Array): string {
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/u, "");
+  return btoa(binary);
+}
+
+export function base64UrlEncode(bytes: Uint8Array): string {
+  return base64Encode(bytes).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/u, "");
 }
 
 export function base64UrlDecode(value: string): Uint8Array<ArrayBuffer> {

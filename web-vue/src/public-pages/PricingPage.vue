@@ -2,7 +2,7 @@
 import { usePublicHead } from "./head";
 
 usePublicHead({
-  title: "Pricing — HVBC",
+  title: "Pricing - HVBC",
   description: "Example pricing page of HVBC, prerendered at build time."
 });
 </script>

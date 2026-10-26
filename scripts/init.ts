@@ -1,10 +1,9 @@
 /**
- * Turns this framework into a new project: renames every identifier, optionally
- * provisions the D1 database, and then removes itself.
+ * Turns this framework into a new project: renames every identifier and then
+ * removes itself.
  *
  *   bun run init --name my-app --title "My App" --host app.example.com
  */
-import { spawnSync } from "node:child_process";
 import { readdir, rm } from "node:fs/promises";
 import { relative, resolve } from "node:path";
 
@@ -14,7 +13,6 @@ const SELF = resolve(import.meta.dir, "init.ts");
 const SKIPPED_DIRECTORIES = new Set([
   "node_modules",
   ".git",
-  ".github",
   ".idea",
   ".logs",
   ".wrangler",
@@ -28,7 +26,9 @@ const TEXT_EXTENSIONS = [".ts", ".vue", ".html", ".css", ".json", ".jsonc", ".sq
 const NAME_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,44}[a-z0-9])$/u;
 const HOST_PATTERN = /^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])$/u;
 const SCOPE_PATTERN = /^@[a-z0-9](?:[a-z0-9-]*[a-z0-9])$/u;
-const DATABASE_ID_PATTERN = /database_id"?\s*[:=]\s*"([0-9a-f-]{36})"/u;
+
+const VALUE_OPTIONS = new Set(["name", "title", "scope", "host"]);
+const FLAG_OPTIONS = new Set(["dry-run"]);
 
 // The clean-up finds these by their exact text, so README.md and AGENTS.md must keep it.
 const README_SECTION = "### Start a new project";
@@ -40,7 +40,6 @@ interface Options {
   title: string;
   scope: string;
   host: string;
-  createDatabase: boolean;
   dryRun: boolean;
 }
 
@@ -57,7 +56,12 @@ function readArguments(argv: string[]): Options {
     if (!argument.startsWith("--")) fail(`unexpected argument: ${argument}`);
     const key = argument.slice(2);
     const next = argv[index + 1];
-    if (next === undefined || next.startsWith("--")) {
+    const isFlag = next === undefined || next.startsWith("--");
+    // A misspelled or retired option must stop the run instead of being ignored.
+    if (!(isFlag ? FLAG_OPTIONS : VALUE_OPTIONS).has(key)) {
+      fail(isFlag && VALUE_OPTIONS.has(key) ? `${argument} needs a value` : `unknown option: ${argument}`);
+    }
+    if (isFlag) {
       flags.add(key);
     } else {
       values.set(key, next);
@@ -85,7 +89,6 @@ function readArguments(argv: string[]): Options {
     title,
     scope,
     host,
-    createDatabase: flags.has("create-d1"),
     dryRun: flags.has("dry-run")
   };
 }
@@ -96,7 +99,6 @@ function replacements(options: Options): Array<[string, string]> {
     ["hvbc.invalid", options.host],
     ["__Host-hvbc-session", `__Host-${options.name}-session`],
     ["@hvbc/", `${options.scope}/`],
-    ["HVBC framework", options.title],
     ["HVBC", options.title],
     ["hvbc", options.name]
   ];
@@ -128,25 +130,6 @@ async function rename(options: Options): Promise<string[]> {
     if (!options.dryRun) await Bun.write(path, updated);
   }
   return changed.sort();
-}
-
-function createDatabase(name: string): string | null {
-  const result = spawnSync("bunx", ["wrangler", "d1", "create", name], {
-    cwd: ROOT,
-    encoding: "utf8",
-    shell: process.platform === "win32"
-  });
-  if (result.status !== 0) {
-    console.error(result.stderr || result.stdout);
-    return null;
-  }
-  return DATABASE_ID_PATTERN.exec(result.stdout)?.[1] ?? null;
-}
-
-async function applyDatabaseId(databaseId: string): Promise<void> {
-  const path = resolve(ROOT, "wrangler.jsonc");
-  const source = await Bun.file(path).text();
-  await Bun.write(path, source.replace("00000000-0000-0000-0000-000000000000", databaseId));
 }
 
 async function rewrite(path: string, edit: (source: string) => string, dryRun: boolean): Promise<boolean> {
@@ -212,24 +195,12 @@ const changed = await rename(options);
 for (const path of changed) console.log(`  updated ${path}`);
 console.log(`${changed.length} files ${options.dryRun ? "would change" : "changed"}.`);
 
-if (options.createDatabase && !options.dryRun) {
-  const databaseId = createDatabase(options.name);
-  if (databaseId === null) {
-    console.warn("  could not create the D1 database; run `bunx wrangler d1 create` manually");
-  } else {
-    await applyDatabaseId(databaseId);
-    console.log(`  created D1 database and wrote database_id ${databaseId}`);
-  }
-}
-
 await removeBootstrapTooling(options.dryRun);
 
 const nextSteps = [
-  "Review README.md and AGENTS.md; they still describe the framework.",
-  ...(options.createDatabase
-    ? []
-    : [`Run: bunx wrangler d1 create ${options.name} and copy database_id into wrangler.jsonc`]),
-  "Run: bun install && bun run verify"
+  "Review the Markdown files and .github/; they still describe the framework and name its maintainer.",
+  "Run: bun install && bun run verify",
+  `To deploy on Cloudflare, run bunx wrangler d1 create ${options.name} and copy database_id into wrangler.jsonc`
 ];
 console.log("\nNext steps:");
 nextSteps.forEach((step, index) => console.log(`  ${index + 1}. ${step}`));

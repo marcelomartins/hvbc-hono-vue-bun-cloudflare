@@ -1,10 +1,7 @@
-const FORBIDDEN_BROWSER_PACKAGES = [
-  "axios",
-  "pinia",
-  "zod",
-  "@tanstack/query-core",
-  "@tanstack/vue-query"
-];
+// The contracts package also holds the server's Zod schemas. This catches a browser
+// import of them, which would ship Zod to every page only to repeat checks the
+// server makes anyway; the forms import their limits from @hvbc/contracts/limits.
+const FORBIDDEN_BROWSER_PACKAGES = ["zod"];
 
 export const FORBIDDEN_CHUNK_PREFIX = "forbidden-dependency";
 

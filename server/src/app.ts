@@ -1,5 +1,5 @@
 import {
-  BACKEND_ROUTE_PREFIXES,
+  isBackendRoutePath,
   loginPath,
   PRIVATE_SPA_SHELL_PATHS,
   PROTECTED_HOME_ROUTE,
@@ -33,10 +33,6 @@ function isPrivateShellPath(path: string): boolean {
     PRIVATE_SPA_SHELL_PATHS.some((candidate) => path === candidate) ||
     path.startsWith(`${PROTECTED_SPA_SHELL_ASSET_PATH}/`)
   );
-}
-
-function isBackendPath(path: string): boolean {
-  return BACKEND_ROUTE_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
 }
 
 function hasFileExtension(path: string): boolean {
@@ -107,7 +103,7 @@ export function createApp(hooks: RuntimeHooks): Hono<AppBindings> {
   // Bun every request reaches it, and the private shell must still never be served.
   app.notFound((context) => {
     const path = context.req.path;
-    if (isBackendPath(path)) return errorResponse(new AppError(404, "NOT_FOUND"), context.get("requestId"));
+    if (isBackendRoutePath(path)) return errorResponse(new AppError(404, "NOT_FOUND"), context.get("requestId"));
     if (isPrivateShellPath(path)) return context.text("Not Found", 404);
     if (context.req.method === "GET" && !hasFileExtension(path)) {
       return serveAsset(context, publicAssetPath(path));

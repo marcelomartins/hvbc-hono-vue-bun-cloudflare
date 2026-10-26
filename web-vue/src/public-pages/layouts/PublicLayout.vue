@@ -5,7 +5,7 @@
       <RouterView />
     </main>
     <footer class="shell public-footer">
-      <p>HVBC — Bun, Hono, Vue, and Cloudflare.</p>
+      <p>HVBC - Hono and Vue, on Bun or Cloudflare.</p>
     </footer>
   </div>
 </template>

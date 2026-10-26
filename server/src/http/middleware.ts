@@ -1,8 +1,9 @@
 import type { ApiErrorBody } from "@hvbc/contracts/api";
+import { isBackendRoutePath } from "@hvbc/contracts/routes";
 import { BROWSER_SECURITY_HEADERS, STRICT_TRANSPORT_SECURITY } from "@hvbc/contracts/security-headers";
 import type { MiddlewareHandler } from "hono";
 
-import { assertRuntimeConfiguration, isInsecureHttp } from "../config";
+import { appHost, assertRuntimeConfiguration, isInsecureHttp } from "../config";
 import { structuredLog } from "../observability/log";
 import { sanitizedRequestPath } from "../observability/request-path";
 import { uuidV7 } from "../shared/uuid";
@@ -26,7 +27,7 @@ export function validateHostAndOrigin(request: Request, environment: AppBindings
     }
     return;
   }
-  if (url.hostname !== environment.APP_HOST) throw new AppError(400, "INVALID_HOST");
+  if (url.hostname !== appHost(environment)) throw new AppError(400, "INVALID_HOST");
   if (!isSafeMethod(request.method) && origin !== environment.APP_ORIGIN) {
     throw new AppError(403, "INVALID_ORIGIN");
   }
@@ -70,7 +71,7 @@ export const browserSecurityHeaders: MiddlewareHandler<AppBindings> = async (con
   if (context.env.ENVIRONMENT !== "local" && !isInsecureHttp(context.env)) {
     context.header("Strict-Transport-Security", STRICT_TRANSPORT_SECURITY);
   }
-  if (context.req.path.startsWith("/auth/") || context.req.path.startsWith("/api/")) {
+  if (isBackendRoutePath(context.req.path)) {
     context.header("Cache-Control", "private, no-store");
   }
 };

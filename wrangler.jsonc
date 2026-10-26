@@ -3,7 +3,7 @@
   "name": "hvbc",
   "main": "./server/src/cloudflare.ts",
   // Keep at or below the date supported by the workerd bundled with
-  // @cloudflare/vitest-pool-workers, so integration tests run with production semantics.
+  // @cloudflare/vitest-plugin, so integration tests run with production semantics.
   "compatibility_date": "2026-08-15",
   "compatibility_flags": ["nodejs_compat"],
   "observability": {
@@ -37,13 +37,14 @@
   },
   "vars": {
     "ENVIRONMENT": "production",
-    "APP_HOST": "hvbc.invalid",
     "APP_ORIGIN": "https://hvbc.invalid",
-    // Optional email delivery: "none" (default), "console" (local only) or "ses".
-    // "ses" also requires SES_REGION, SES_FROM and the AWS secrets.
+    // Optional delivery for the email a project sends; the framework sends none.
+    // "none" (default), "console" (local only), "cloudflare" (the EMAIL binding below)
+    // or "ses" (SES_REGION and the AWS secrets). Both providers need EMAIL_FROM, an
+    // address or "Name <address>".
     "EMAIL_DRIVER": "none",
+    "EMAIL_FROM": "",
     "SES_REGION": "",
-    "SES_FROM": "",
     // Optional Turnstile: set this together with the TURNSTILE_SECRET_KEY secret.
     "TURNSTILE_SITE_KEY": "",
     // Optional rate limiting of /auth/login and /auth/register: "true" also requires
@@ -58,6 +59,9 @@
   //     "simple": { "limit": 20, "period": 60 }
   //   }
   // ],
+  // Required by EMAIL_DRIVER=cloudflare. Sending to any recipient needs the Workers
+  // Paid plan and the EMAIL_FROM domain onboarded to Cloudflare Email Service.
+  // "send_email": [{ "name": "EMAIL" }],
   "d1_databases": [
     {
       "binding": "DB",

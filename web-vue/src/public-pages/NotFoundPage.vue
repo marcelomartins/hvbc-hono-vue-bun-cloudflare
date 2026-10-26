@@ -2,7 +2,7 @@
 import { usePublicHead } from "./head";
 
 usePublicHead({
-  title: "Page not found — HVBC",
+  title: "Page not found - HVBC",
   description: "The page you requested does not exist or has moved.",
   indexable: false
 });

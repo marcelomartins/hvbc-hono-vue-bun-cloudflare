@@ -31,8 +31,16 @@ const RETURN_TO_PARAMETER = "next";
 // resolves elsewhere came from an absolute or protocol-relative URL.
 const RETURN_PATH_BASE = "https://return-path.invalid";
 
+function isUnderPrefix(prefixes: readonly string[], path: string): boolean {
+  return prefixes.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+}
+
+export function isBackendRoutePath(path: string): boolean {
+  return isUnderPrefix(BACKEND_ROUTE_PREFIXES, path);
+}
+
 export function isProtectedRoutePath(path: string): boolean {
-  return PROTECTED_ROUTE_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+  return isUnderPrefix(PROTECTED_ROUTE_PREFIXES, path);
 }
 
 function protectedReturnPath(value: string): string | null {

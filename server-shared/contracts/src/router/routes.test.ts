@@ -3,6 +3,7 @@ import { parseConfigFileTextToJson } from "typescript";
 
 import {
   BACKEND_ROUTE_PREFIXES,
+  isBackendRoutePath,
   isProtectedRoutePath,
   loginPath,
   NOT_FOUND_SSG_ROUTE,
@@ -46,6 +47,13 @@ describe("login return path", () => {
 });
 
 describe("route registry", () => {
+  test("recognizes backend paths by whole segments", () => {
+    expect(isBackendRoutePath("/health")).toBe(true);
+    expect(isBackendRoutePath("/api/v1/me")).toBe(true);
+    expect(isBackendRoutePath("/authors")).toBe(false);
+    expect(isBackendRoutePath("/pricing")).toBe(false);
+  });
+
   test("keeps public, backend and protected routes disjoint", () => {
     const groups = [PUBLIC_SSG_ROUTES, BACKEND_ROUTE_PREFIXES, PROTECTED_ROUTE_PREFIXES];
     const all = groups.flat();

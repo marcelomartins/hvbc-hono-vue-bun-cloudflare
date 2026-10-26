@@ -1,0 +1,24 @@
+version: 2
+updates:
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Blocked by vue-tsc, which type-checks the .vue files: drop once it supports TypeScript 7.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      # Blocked by vite-ssg, which depends on @unhead/vue 2: drop once it accepts version 3.
+      - dependency-name: "@unhead/vue"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
