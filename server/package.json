@@ -16,6 +16,6 @@
     "@cloudflare/vitest-plugin": "^1.4.8",
     "@types/bun": "^1.4.3",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.12"
+    "vitest": "^5.0.5"
   }
 }
