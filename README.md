@@ -4,10 +4,20 @@
 
 Full-stack TypeScript architecture with a Hono API and an authenticated Vue SPA. Backend and frontend are separate in code and deployed as a single app. Runs self-hosted on Bun or on Cloudflare Workers. Created by [Marcelo Martins](https://minhainternet.com/marcelomartins).
 
+## Start with an AI agent
+
+Any AI coding agent can create your project from a short prompt. It reads [`AGENTS.md`](./AGENTS.md) and this README and does the rest.
+
+```text
+Create a new app in this folder using the framework https://github.com/marcelomartins/hvbc-hono-vue-bun-cloudflare.
+It's a task list where each user signs in and manages their own tasks.
+```
+
 ## Why HVBC
 
 - **One repository, one deploy.** Frontend and backend are developed separately, then ship together as a single app on one origin.
 - **Fast public pages, protected app.** Public pages are prerendered for speed and SEO, while private pages run as a single-page app.
+- **Vue by default, but you can change it.** The server only uses the pages the frontend build outputs, so any framework that outputs the same pages works.
 - **Authentication included.** Registration, login, logout, profile, and password change, with secure cookies and server-side validation.
 - **Secure by default.** Signed sessions revocable per user, PBKDF2 password hashing, Host and Origin checks, security headers (CSP, HSTS) defined in one place, and a configuration that refuses to run when incomplete.
 - **Runs on Cloudflare Workers, without lock-in.** The same code also runs on your own server with Bun and SQLite.

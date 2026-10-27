@@ -40,7 +40,7 @@
 - Do not put secrets in `wrangler.jsonc`, code, or committed files.
 - Declare every optional binding in `server/vitest.config.ts` and pin every optional variable in `server/scripts/boot-smoke.ts`, so neither depends on the developer's `.dev.vars` or `.env`.
 - Define browser security headers only in `server-shared/contracts/src/http/security-headers.ts`: the server applies them to its responses and the build generates `_headers` from them for the Cloudflare asset layer. Never hand-write `_headers`, `robots.txt`, or `sitemap.xml`; the build generates them.
-- `scripts/init.ts` holds the identifiers it rewrites, so it must keep excluding itself from the walk. Update it whenever a new framework identifier is introduced. When it finishes it removes itself, its `package.json` script, the `### Start a new project` README section, and this line, finding them by their exact text, so keep that text in step with the script.
+- `scripts/init.ts` holds the identifiers it rewrites, so it must keep excluding itself from the walk. Update it whenever a new framework identifier is introduced. When it finishes it removes itself, its `package.json` script, the `## Start with an AI agent` and `### Start a new project` README sections, and this line, finding them by their exact text, so keep that text in step with the script.
 - Do not add remote bindings, deploy, use remote D1, set secrets, change DNS, or push images to a registry without explicit authorization.
 
 ## Verification

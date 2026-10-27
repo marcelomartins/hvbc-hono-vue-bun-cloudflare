@@ -31,7 +31,7 @@ const VALUE_OPTIONS = new Set(["name", "title", "scope", "host"]);
 const FLAG_OPTIONS = new Set(["dry-run"]);
 
 // The clean-up finds these by their exact text, so README.md and AGENTS.md must keep it.
-const README_SECTION = "### Start a new project";
+const README_SECTIONS = ["## Start with an AI agent", "### Start a new project"];
 const AGENTS_INVARIANT = "- `scripts/init.ts` ";
 const TYPECHECK_PREFIX = "tsc --noEmit -p scripts/tsconfig.json && ";
 
@@ -148,8 +148,8 @@ function editLines(source: string, edit: (lines: string[]) => string[]): string 
   return edit(source.split(/\r?\n/u)).join(newlineOf(source));
 }
 
-function withoutReadmeSection(lines: string[]): string[] {
-  const start = lines.indexOf(README_SECTION);
+function withoutReadmeSection(lines: string[], heading: string): string[] {
+  const start = lines.indexOf(heading);
   if (start === -1) return lines;
   const length = lines.slice(start + 1).findIndex((line) => line.startsWith("## ") || line.startsWith("### "));
   return [...lines.slice(0, start), ...(length === -1 ? [] : lines.slice(start + 1 + length))];
@@ -170,7 +170,11 @@ async function removeBootstrapTooling(dryRun: boolean): Promise<void> {
   const verb = dryRun ? "would remove" : "removed";
   const steps: Array<[string, string, (source: string) => string]> = [
     ["package.json", "the init script from package.json", withoutInitScript],
-    ["README.md", "the \"Start a new project\" section from README.md", (source) => editLines(source, withoutReadmeSection)],
+    ...README_SECTIONS.map((heading): [string, string, (source: string) => string] => [
+      "README.md",
+      `the "${heading.replace(/^#+ /u, "")}" section from README.md`,
+      (source) => editLines(source, (lines) => withoutReadmeSection(lines, heading))
+    ]),
     [
       "AGENTS.md",
       "the scripts/init.ts invariant from AGENTS.md",
