@@ -6,7 +6,7 @@ Full-stack TypeScript architecture with a Hono API and an authenticated Vue SPA.
 
 ## Start with an AI agent
 
-Any AI coding agent can create your project from a short prompt. It reads [`AGENTS.md`](./AGENTS.md) and this README and does the rest.
+Any AI coding agent can take you from a short prompt to a live app in about 30 minutes:
 
 ```text
 Create a new app in this folder using the framework
