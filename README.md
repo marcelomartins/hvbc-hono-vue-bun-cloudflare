@@ -9,7 +9,9 @@ Full-stack TypeScript architecture with a Hono API and an authenticated Vue SPA.
 Any AI coding agent can create your project from a short prompt. It reads [`AGENTS.md`](./AGENTS.md) and this README and does the rest.
 
 ```text
-Create a new app in this folder using the framework https://github.com/marcelomartins/hvbc-hono-vue-bun-cloudflare.
+Create a new app in this folder using the framework
+https://github.com/marcelomartins/hvbc-hono-vue-bun-cloudflare.
+
 It's a task list where each user signs in and manages their own tasks.
 ```
 
