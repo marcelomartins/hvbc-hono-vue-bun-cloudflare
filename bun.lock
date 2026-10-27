@@ -15,7 +15,6 @@
     },
     "server": {
       "name": "@hvbc/server",
-      "version": "0.1.0",
       "dependencies": {
         "@hvbc/contracts": "workspace:*",
         "hono": "^4.13.13",
@@ -30,7 +29,6 @@
     },
     "server-shared/contracts": {
       "name": "@hvbc/contracts",
-      "version": "0.1.0",
       "dependencies": {
         "zod": "^4.6.7",
       },
@@ -41,7 +39,6 @@
     },
     "web-vue": {
       "name": "@hvbc/web",
-      "version": "0.1.0",
       "dependencies": {
         "@hvbc/contracts": "workspace:*",
         "@unhead/vue": "^2.1.17",
