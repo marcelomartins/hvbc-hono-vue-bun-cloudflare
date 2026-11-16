@@ -30,11 +30,11 @@
   },
   "devDependencies": {
     "@types/bun": "^1.4.4",
-    "@types/node": "26.6.5",
-    "knip": "6.43.0",
-    "oxlint": "1.89.0",
+    "@types/node": "26.6.6",
+    "knip": "6.45.1",
+    "oxlint": "1.93.0",
     "typescript": "^6.0.3",
-    "wrangler": "^4.153.0"
+    "wrangler": "^4.161.0"
   },
   "overrides": {
     "undici": "7.30.1"
